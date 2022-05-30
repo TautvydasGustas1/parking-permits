@@ -225,6 +225,12 @@ class Order(SerializableMixin, TimestampedModelMixin):
     )
     talpa_checkout_url = models.URLField(_("Talpa checkout url"), blank=True)
     talpa_receipt_url = models.URLField(_("Talpa receipt_url"), blank=True)
+    payment_type = models.CharField(
+        _("Payment type"),
+        max_length=50,
+        choices=OrderPaymentType.choices,
+        default=OrderPaymentType.CASHIER_PAYMENT,
+    )
     customer = models.ForeignKey(
         Customer,
         verbose_name=_("Customer"),
@@ -259,15 +265,6 @@ class Order(SerializableMixin, TimestampedModelMixin):
     @property
     def is_confirmed(self):
         return self.status == OrderStatus.CONFIRMED
-
-    @property
-    def payment_type(self):
-        if self.is_confirmed:
-            if self.talpa_order_id:
-                return OrderPaymentType.ONLINE_PAYMENT
-            else:
-                return OrderPaymentType.CASHIER_PAYMENT
-        return ""
 
     @property
     def order_permits(self):
