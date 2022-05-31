@@ -55,7 +55,11 @@ def is_low_emission_vehicle(power_type, euro_class, emission_type, emission):
     except LowEmissionCriteria.DoesNotExist:
         return False
 
-    if not euro_class or not emission or euro_class < le_criteria.euro_min_class_limit:
+    if (
+        not euro_class
+        or emission is None
+        or euro_class < le_criteria.euro_min_class_limit
+    ):
         return False
 
     if emission_type == EmissionType.NEDC:
