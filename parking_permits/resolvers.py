@@ -251,7 +251,7 @@ def resolve_update_permit_vehicle(_, info, permit_id, vehicle_id, iban=None):
     permit.save()
 
     send_permit_email(PermitEmailType.UPDATED, permit)
-    return {"latest_order_id": permit.latest_order_id, "checkout_url": checkout_url}
+    return {"checkout_url": checkout_url}
 
 
 @mutation.field("createOrder")

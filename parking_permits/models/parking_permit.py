@@ -176,8 +176,10 @@ class ParkingPermit(SerializableMixin, TimestampedModelMixin):
         return self.orders.latest("id")
 
     @property
-    def latest_order_id(self):
-        return self.latest_order.id
+    def talpa_order_id(self):
+        if self.latest_order and self.latest_order.talpa_order_id:
+            return self.latest_order.talpa_order_id
+        return None
 
     @property
     def latest_order_items(self):
