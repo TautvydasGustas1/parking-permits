@@ -29,6 +29,7 @@ from parking_permits.models import (
 from .decorators import is_ad_admin
 from .exceptions import (
     AddressError,
+    CreatePermitError,
     ObjectNotFound,
     ParkingZoneError,
     PermitLimitExceeded,
@@ -203,9 +204,17 @@ def create_permit_address(customer_info):
 def resolve_create_resident_permit(obj, info, permit):
     customer_info = permit["customer"]
     customer = update_or_create_customer(customer_info)
-    active_permits_count = customer.active_permits.count()
+    active_permits = customer.active_permits
+    active_permits_count = active_permits.count()
     if active_permits_count >= 2:
-        raise PermitLimitExceeded("Cannot create more than 2 permits")
+        raise PermitLimitExceeded(_("Cannot create more than 2 permits"))
+
+    start_time = isoparse(permit["start_time"])
+    end_time = get_end_time(start_time, permit["month_count"])
+    if active_permits_count == 1 and end_time > active_permits[0].end_time:
+        raise CreatePermitError(
+            _("The validity period of secondary permit cannot exceeds the primary one")
+        )
 
     vehicle_info = permit["vehicle"]
     vehicle = update_or_create_vehicle(vehicle_info)
@@ -215,8 +224,6 @@ def resolve_create_resident_permit(obj, info, permit):
     parking_zone = ParkingZone.objects.get(name=customer_info["zone"])
     primary_vehicle = active_permits_count == 0
     with reversion.create_revision():
-        start_time = isoparse(permit["start_time"])
-        end_time = get_end_time(start_time, permit["month_count"])
         parking_permit = ParkingPermit.objects.create(
             contract_type=ContractType.FIXED_PERIOD,
             customer=customer,
