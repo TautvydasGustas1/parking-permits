@@ -1,10 +1,10 @@
 {% extends "emails/base.html" %}
 
-{% block title %}Sinulle on luotu pysäköintitunnus{% endblock %}
+{% block title %}Tilauksesi on päättynyt{% endblock %}
 
 {% block content %}
     <p>
-        Pysäköintitunnuksesi päättyy {{ permit.end_time|time:"%-d.%-m.%Y, %H:%M" }}. Mikäli haluat jatkaa
+        Pysäköintitunnuksesi päättyy {{ permit.end_time|date:"j.n.Y, H:i" }}. Mikäli haluat jatkaa
         tunnuksen käyttöä tulee sinun tehdä uusi tilaus.
     </p>
     {% include "emails/_permit_info.html" %}

@@ -6,5 +6,5 @@
     Alue: {{ permit.parking_zone.name }} <br>
     Ajoneuvo: {{ permit.vehicle }} <br>
     {{ permit.get_contract_type_display }} <br>
-    Voimassaoloaika: {{ permit.start_time|time:"%-d.%-m.%Y, %H:%M" }} – {{ permit.end_time|time:"%-d.%-m.%Y, %H:%M" }}
+    Voimassaoloaika: {{ permit.start_time|date:"j.n.Y, H:i" }} – {{ permit.end_time|date:"j.n.Y, H:i" }}
 </p>
