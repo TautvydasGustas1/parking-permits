@@ -25,7 +25,7 @@ permit_email_templates = {
 def send_permit_email(action, permit):
     subject = permit_email_subjects[action]
     template = permit_email_templates[action]
-    html_message = render_to_string(template)
+    html_message = render_to_string(template, context={"permit": permit})
     plain_message = strip_tags(html_message)
     recipient_list = [permit.customer.email]
     mail.send_mail(
