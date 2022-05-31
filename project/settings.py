@@ -252,3 +252,6 @@ EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD")
 EMAIL_PORT = env.int("EMAIL_PORT")
 EMAIL_TIMEOUT = env.int("EMAIL_TIMEOUT")
 DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL")
+
+if DEBUG:
+    EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
