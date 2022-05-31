@@ -28,8 +28,8 @@ logger = logging.getLogger("db")
 
 
 class ParkingPermitType(models.TextChoices):
-    RESIDENT = "RESIDENT", _("Resident")
-    COMPANY = "COMPANY", _("Company")
+    RESIDENT = "RESIDENT", _("Resident permit")
+    COMPANY = "COMPANY", _("Company permit")
 
 
 class ContractType(models.TextChoices):
