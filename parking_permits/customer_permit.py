@@ -257,7 +257,9 @@ class CustomerPermit:
                 reversion.set_user(self.customer.user)
                 comment = get_reversion_comment(EventType.CHANGED, permit)
                 reversion.set_comment(comment)
-                send_permit_email(PermitEmailType.ENDED, permit)
+                send_permit_email(
+                    PermitEmailType.ENDED, ParkingPermit.objects.get(id=permit.id)
+                )
         # Delete all the draft permit while ending the customer valid permits
         draft_permits = self.customer_permit_query.filter(status=DRAFT)
         OrderItem.objects.filter(permit__in=draft_permits).delete()
