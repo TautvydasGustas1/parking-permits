@@ -1,5 +1,6 @@
 from django.core import mail
 from django.template.loader import render_to_string
+from django.utils import translation
 from django.utils.html import strip_tags
 
 
@@ -25,7 +26,8 @@ permit_email_templates = {
 def send_permit_email(action, permit):
     subject = permit_email_subjects[action]
     template = permit_email_templates[action]
-    html_message = render_to_string(template, context={"permit": permit})
+    with translation.override(permit.customer.language):
+        html_message = render_to_string(template, context={"permit": permit})
     plain_message = strip_tags(html_message)
     recipient_list = [permit.customer.email]
     mail.send_mail(
