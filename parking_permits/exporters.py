@@ -160,16 +160,15 @@ class BasePDF(FPDF, metaclass=abc.ABCMeta):
     def header(self):
         self.image(str(settings.STATIC_ROOT) + "/helsinki.png", 10, 8, 33)
         self.set_font("Arial", "B", 15)
-        self.cell(80)
+        self.cell(55)
         self.cell(20, 10, self.get_title(), 0, 0, "C")
         self.ln(20)
 
     def footer(self):
         self.set_y(-25)
-        self.set_font("Arial", "I", 8)
-        self.cell(0, 5, _("City of Helsinki"), 0, 1, "C")
-        self.cell(0, 5, _("Urban Environment Division"), 0, 1, "C")
-        self.cell(0, 5, "https://www.hel.fi/kaupunkiymparisto/", 0, 0, "C")
+        self.set_font("Arial", "", 10)
+        self.cell(0, 5, _("City of Helsinki"), 0, 1)
+        self.cell(0, 5, _("Urban Environment Division"), 0, 1)
 
     @abc.abstractmethod
     def get_title(self):
@@ -196,8 +195,14 @@ class ParkingPermitPDF(BasePDF):
 
     def set_content(self, obj):
         permit = obj
+        self.set_font("Arial", "B", 16)
+        self.cell(0, 14, _("Resident permit"), 0, 1)
+        self.set_draw_color(0, 0, 139)
+        self.set_line_width(0.5)
+        self.line(11, 45, 200, 45)
+        self.ln(10)
+        self.set_font("Arial", "", 12)
         content = [
-            _("Resident permit"),
             _("Permit ID") + ": " + f"{permit.id}",
             _("Customer")
             + ": "
@@ -234,6 +239,5 @@ class PdfExporter:
         if not obj:
             return None
         pdf.add_page()
-        pdf.set_font("Times", "", 12)
         pdf.set_content(obj)
         return pdf
