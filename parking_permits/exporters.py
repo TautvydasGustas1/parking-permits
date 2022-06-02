@@ -158,7 +158,9 @@ class DataExporter:
 
 class BasePDF(FPDF, metaclass=abc.ABCMeta):
     def header(self):
-        self.image(str(settings.STATIC_ROOT) + "/helsinki.png", 10, 8, 33)
+        self.image(
+            str(settings.STATIC_ROOT) + "/parking_permits/img/helsinki.png", 10, 8, 33
+        )
         self.set_font("Arial", "B", 15)
         self.cell(55)
         self.cell(20, 10, self.get_title(), 0, 0, "C")
