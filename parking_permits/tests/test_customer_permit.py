@@ -10,7 +10,7 @@ from freezegun import freeze_time
 from parking_permits.customer_permit import CustomerPermit
 from parking_permits.exceptions import (
     InvalidContractType,
-    InvalidUserZone,
+    InvalidUserAddress,
     NonDraftPermitUpdateError,
     PermitCanNotBeDelete,
 )
@@ -26,6 +26,7 @@ from parking_permits.tests.factories import (
     LowEmissionCriteriaFactory,
     ParkingZoneFactory,
 )
+from parking_permits.tests.factories.address import AddressFactory
 from parking_permits.tests.factories.customer import CustomerFactory
 from parking_permits.tests.factories.parking_permit import ParkingPermitFactory
 from parking_permits.tests.factories.product import ProductFactory
@@ -179,8 +180,9 @@ class CreateCustomerPermitTestCase(TestCase):
         )
 
     def test_customer_a_can_not_create_permit_in_zone_outside_his_address(self):
-        with self.assertRaisesMessage(InvalidUserZone, "Invalid user zone."):
-            CustomerPermit(self.customer_a.id).create(self.zone.id, "ABC-123")
+        address = AddressFactory()
+        with self.assertRaisesMessage(InvalidUserAddress, "Invalid user address."):
+            CustomerPermit(self.customer_a.id).create(address.id, "ABC-123")
 
 
 class DeleteCustomerPermitTestCase(TestCase):
@@ -226,6 +228,7 @@ class UpdateCustomerPermitTestCase(TestCase):
         self.c_a_draft = ParkingPermitFactory(
             customer=self.cus_a,
             status=DRAFT,
+            address=self.cus_a.primary_address,
             parking_zone=self.cus_a.primary_address.zone,
         )
         self.c_a_can = ParkingPermitFactory(customer=self.cus_a, status=CLOSED)
@@ -235,6 +238,7 @@ class UpdateCustomerPermitTestCase(TestCase):
             customer=self.cus_a,
             status=DRAFT,
             primary_vehicle=False,
+            address=self.cus_a.primary_address,
             parking_zone=self.cus_a.primary_address.zone,
         )
 
@@ -269,28 +273,28 @@ class UpdateCustomerPermitTestCase(TestCase):
         self.assertEqual(pri.primary_vehicle, False)
         self.assertEqual(sec.primary_vehicle, True)
 
-    def test_can_not_update_zone_id_of_drafts_if_not_in_his_address(self):
-        self.zone = ParkingZoneFactory()
-        data = {"zone_id": str(self.zone.id)}
-        with self.assertRaisesMessage(InvalidUserZone, "Invalid user zone."):
+    def test_can_not_update_address_id_of_drafts_if_not_in_his_address(self):
+        address = AddressFactory()
+        data = {"address_id": str(address.id)}
+        with self.assertRaisesMessage(InvalidUserAddress, "Invalid user address."):
             CustomerPermit(self.cus_a.id).update(data)
 
-    def test_can_not_update_zone_id_of_valid_if_not_in_his_address(self):
-        data = {"zone_id": str(self.cus_b.other_address.zone.id)}
-        with self.assertRaisesMessage(InvalidUserZone, "Invalid user zone."):
+    def test_can_not_update_address_id_of_valid_if_not_in_his_address(self):
+        data = {"address_id": str(self.cus_b.other_address.id)}
+        with self.assertRaisesMessage(InvalidUserAddress, "Invalid user address."):
             CustomerPermit(self.cus_a.id).update(data)
 
     def test_can_update_zone_id_of_all_drafts_with_zone_that_either_of_his_address_has(
         self,
     ):
-        sec_add_zone = self.cus_a.other_address.zone
-        pri_add_zone = self.cus_a.primary_address.zone
-        data = {"zone_id": str(sec_add_zone.id)}
-        self.assertEqual(self.c_a_draft.parking_zone, pri_add_zone)
-        self.assertEqual(self.c_a_draft_sec.parking_zone, pri_add_zone)
+        sec_add_id = self.cus_a.other_address.id
+        pri_add_id = self.cus_a.primary_address.id
+        data = {"address_id": str(sec_add_id)}
+        self.assertEqual(self.c_a_draft.address_id, pri_add_id)
+        self.assertEqual(self.c_a_draft_sec.address_id, pri_add_id)
         results = CustomerPermit(self.cus_a.id).update(data)
         for result in results:
-            self.assertEqual(result.parking_zone, sec_add_zone)
+            self.assertEqual(result.address_id, str(sec_add_id))
 
     def test_can_not_update_zone_if_it_has_payment_in_progress_or_valid_primary_permit(
         self,
@@ -298,11 +302,9 @@ class UpdateCustomerPermitTestCase(TestCase):
         for status in [PAYMENT_IN_PROGRESS, VALID]:
             self.c_a_draft.status = status
             self.c_a_draft.save(update_fields=["status"])
-            sec_add_zone = self.cus_a.other_address.zone
-            pri_add_zone = self.cus_a.primary_address.zone
-            data = {"zone_id": str(sec_add_zone.id)}
-            msg = f"You can buy permit only for zone {pri_add_zone.name}"
-            with self.assertRaisesMessage(InvalidUserZone, msg):
+            data = {"address_id": str(self.cus_a.other_address.id)}
+            msg = f"You can buy permit only for address {self.cus_a.primary_address}"
+            with self.assertRaisesMessage(InvalidUserAddress, msg):
                 CustomerPermit(self.cus_a.id).update(data)
 
     def test_all_draft_permit_to_have_same_immediately_start_type(self):

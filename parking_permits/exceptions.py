@@ -14,7 +14,7 @@ class PriceError(ParkingPermitBaseException):
     pass
 
 
-class InvalidUserZone(ParkingPermitBaseException):
+class InvalidUserAddress(ParkingPermitBaseException):
     pass
 
 

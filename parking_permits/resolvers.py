@@ -164,9 +164,9 @@ def resolve_delete_parking_permit(obj, info, permit_id):
 @mutation.field("createParkingPermit")
 @is_authenticated
 @convert_kwargs_to_snake_case
-def resolve_create_parking_permit(obj, info, zone_id, registration):
+def resolve_create_parking_permit(obj, info, address_id, registration):
     request = info.context["request"]
-    return CustomerPermit(request.user.customer.id).create(zone_id, registration)
+    return CustomerPermit(request.user.customer.id).create(address_id, registration)
 
 
 @mutation.field("updateParkingPermit")

@@ -65,6 +65,7 @@ class GetReversionCommentTestCase(TestCase):
         comment = get_reversion_comment(EventType.CREATED, permit)
         self.assertTrue(comment.startswith("CREATED"))
 
+    @override_settings(LANGUAGE_CODE="en")
     def test_get_changed_reversion_comment(self):
         with reversion.create_revision():
             permit = ParkingPermitFactory(status=ParkingPermitStatus.DRAFT)

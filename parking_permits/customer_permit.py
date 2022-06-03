@@ -10,21 +10,13 @@ from .constants import LOW_EMISSION_DISCOUNT, SECONDARY_VEHICLE_PRICE_INCREASE
 from .exceptions import (
     DuplicatePermit,
     InvalidContractType,
-    InvalidUserZone,
+    InvalidUserAddress,
     NonDraftPermitUpdateError,
     PermitCanNotBeDelete,
     PermitLimitExceeded,
     TraficomFetchVehicleError,
 )
-from .models import (
-    Customer,
-    Order,
-    OrderItem,
-    ParkingPermit,
-    ParkingZone,
-    Refund,
-    Vehicle,
-)
+from .models import Address, Customer, Order, OrderItem, ParkingPermit, Refund, Vehicle
 from .models.order import OrderStatus
 from .models.parking_permit import (
     ContractType,
@@ -90,12 +82,13 @@ class CustomerPermit:
             permits.append(permit)
         return permits
 
-    def create(self, zone_id, registration):
+    def create(self, address_id, registration):
         if self.customer_permit_query.filter(
             vehicle__registration_number=registration
         ).count():
             raise DuplicatePermit("Permit for a given vehicle already exist.")
-        if self._can_buy_permit_for_zone(zone_id):
+        address = Address.objects.get(id=address_id)
+        if self._can_buy_permit_for_address(address.id):
             contract_type = OPEN_ENDED
             primary_vehicle = True
             end_time = None
@@ -124,7 +117,8 @@ class CustomerPermit:
 
                 permit = ParkingPermit.objects.create(
                     customer=self.customer,
-                    parking_zone=ParkingZone.objects.get(id=zone_id),
+                    address=address,
+                    parking_zone=address.zone,
                     primary_vehicle=primary_vehicle,
                     contract_type=contract_type,
                     start_time=next_day(),
@@ -171,8 +165,15 @@ class CustomerPermit:
         if "primary_vehicle" in keys:
             return self._toggle_primary_permit()
 
-        if "zone_id" in keys and self._can_buy_permit_for_zone(data["zone_id"]):
-            fields_to_update.update({"parking_zone_id": data["zone_id"]})
+        if "address_id" in keys:
+            address = Address.objects.get(id=data["address_id"])
+            if self._can_buy_permit_for_address(address.id):
+                fields_to_update.update(
+                    {
+                        "address_id": data["address_id"],
+                        "parking_zone_id": address.zone.id,
+                    }
+                )
 
         if "start_type" in keys or "start_time" in keys:
             fields_to_update.update(self._get_start_type_and_start_time(data))
@@ -299,9 +300,9 @@ class CustomerPermit:
         product.total_price = unit_price * quantity
         return product
 
-    def _can_buy_permit_for_zone(self, zone_id):
-        if not self._is_valid_user_zone(zone_id):
-            raise InvalidUserZone("Invalid user zone.")
+    def _can_buy_permit_for_address(self, address_id):
+        if not self._is_valid_user_address(address_id):
+            raise InvalidUserAddress("Invalid user address.")
 
         max_allowed_permit = settings.MAX_ALLOWED_USER_PERMIT
 
@@ -316,21 +317,21 @@ class CustomerPermit:
         # multiple zone.
         if self.customer_permit_query.count():
             primary, _ = self._get_primary_and_secondary_permit()
-            if str(primary.parking_zone_id) != zone_id and primary.status != DRAFT:
-                raise InvalidUserZone(
-                    f"You can buy permit only for zone {primary.parking_zone.name}"
+            if str(primary.address_id) != address_id and primary.status != DRAFT:
+                raise InvalidUserAddress(
+                    f"You can buy permit only for address {primary.address}"
                 )
 
         return True
 
-    def _is_valid_user_zone(self, zone_id):
+    def _is_valid_user_address(self, address_id):
         primary = self.customer.primary_address
         other = self.customer.other_address
 
         # Check if zone belongs to either of the user address zone
-        if primary and str(primary.zone.id) == zone_id:
+        if primary and primary.id == address_id:
             return True
-        if other and str(other.zone.id) == zone_id:
+        if other and other.id == address_id:
             return True
         return False
 
