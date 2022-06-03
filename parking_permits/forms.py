@@ -1,8 +1,11 @@
 import json
 
 from django import forms
+from django.contrib.postgres.forms import SimpleArrayField
 from django.utils.translation import ugettext as _
 
+from parking_permits.models.order import OrderPaymentType
+from parking_permits.models.refund import RefundStatus
 from parking_permits.utils import convert_to_snake_case
 
 EXPORT_DATA_TYPE_CHOICES = [
@@ -78,3 +81,15 @@ class DataExportForm(forms.Form):
 class PdfExportForm(forms.Form):
     data_type = forms.ChoiceField(choices=PDF_EXPORT_DATA_TYPE_CHOICES)
     object_id = forms.IntegerField()
+
+
+class RefundSearchForm(forms.Form):
+    q = forms.CharField(required=False)
+    status = forms.ChoiceField(
+        choices=RefundStatus.choices + [("ALL", "All")], required=False
+    )
+    start_date = forms.DateField(required=False)
+    end_date = forms.DateField(required=False)
+    payment_types = SimpleArrayField(
+        forms.ChoiceField(choices=OrderPaymentType.choices), required=False
+    )

@@ -240,6 +240,14 @@ type PermitPriceNode {
   quantity: Int!
 }
 
+input RefundSearchParamsInput {
+  q: String!
+  startDate: String!
+  endDate: String!
+  status: String!
+  paymentTypes: String!
+}
+
 type Query {
   permits(
     pageInput: PageInput!
@@ -259,6 +267,7 @@ type Query {
   refunds(
     pageInput: PageInput!
     orderBy: OrderByInput
+    searchParams: RefundSearchParamsInput
   ): PagedRefunds!
   refund(refundId: ID!): RefundNode!
   permitPriceChangeList(permitId: ID!, permitInfo: ResidentPermitInput!): [PermitPriceChange]
