@@ -6,8 +6,9 @@ from .mixins import TimestampedModelMixin, UserStampedModelMixin
 
 class RefundStatus(models.TextChoices):
     OPEN = "OPEN", _("Open")
-    IN_PROGRESS = "IN_PROGRESS", _("In progress")
+    REQUEST_FOR_APPROVAL = "REQUEST_FOR_APPROVAL", _("Request for approval")
     ACCEPTED = "ACCEPTED", _("Accepted")
+    REJECTED = "REJECTED", _("Rejected")
 
 
 class Refund(TimestampedModelMixin, UserStampedModelMixin):
