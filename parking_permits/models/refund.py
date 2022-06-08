@@ -15,7 +15,7 @@ class Refund(TimestampedModelMixin, UserStampedModelMixin):
     name = models.CharField(_("Name"), max_length=200, blank=True)
     order = models.OneToOneField(
         "Order",
-        verbose_name=_("Permit"),
+        verbose_name=_("Order"),
         on_delete=models.PROTECT,
         related_name="refund",
     )

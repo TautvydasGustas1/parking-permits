@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-05-24 14:15+0300\n"
+"POT-Creation-Date: 2022-06-08 10:49+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -29,6 +29,12 @@ msgstr "Henkilöä ei löytynyt"
 
 msgid "Vehicle not found for the customer"
 msgstr "Asiakkaan ajoneuvoa ei löytynyt"
+
+msgid "Cannot create more than 2 permits"
+msgstr "Asukaspysäköintitunnusten maksimimäärä on 2 kpl per asiakas"
+
+msgid "The validity period of secondary permit cannot exceeds the primary one"
+msgstr "Toissijaisen tunnuksen aikaväli ei voi ylittää ensisijaista"
 
 msgid "Parking permit not found"
 msgstr "Pysäköintitunnusta ei löytynyt"
@@ -108,9 +114,6 @@ msgstr "Kaupunkiympäristö"
 msgid "Parking permits"
 msgstr "Pysäköintitunnukset"
 
-msgid "Resident permit"
-msgstr "Asukaspysäköintitunnus"
-
 msgid "Permit ID"
 msgstr "Tunniste"
 
@@ -128,6 +131,45 @@ msgstr "Tyyppi"
 
 msgid "Validity period"
 msgstr "Voimassaoloaika"
+
+msgid "Resident permit"
+msgstr "Asukaspysäköintitunnus"
+
+msgid "Refunds"
+msgstr "Palautukset"
+
+msgid "Refund ID"
+msgstr "Palautusnumero"
+
+msgid "incl. VAT"
+msgstr "sis. ALV"
+
+msgid "IBAN"
+msgstr "IBAN-tilinumero"
+
+msgid "Extra info"
+msgstr "Lisätiedot"
+
+msgid "Order ID"
+msgstr "Tilausnumero"
+
+msgid "Order payment type"
+msgstr "Maksutyyppi"
+
+msgid "Order payment time"
+msgstr "Maksuaika"
+
+msgid "Refund"
+msgstr "Palautus"
+
+msgid "Order info"
+msgstr "Tilauksen tiedot"
+
+msgid "Primary permit"
+msgstr "Ensisijainen tunnus"
+
+msgid "Secondary permit"
+msgstr "Toissijainen tunnus"
 
 msgid "Invalid order by"
 msgstr "Virheellinen tunnuksen järjestys"
@@ -189,6 +231,15 @@ msgstr "Yritys"
 msgid "Companies"
 msgstr "Yritykset"
 
+msgid "Finnish"
+msgstr "Suomi"
+
+msgid "Swedish"
+msgstr "Ruotsi"
+
+msgid "English"
+msgstr "Englanti"
+
 msgid "Source system"
 msgstr "Lähdejärjestelmä"
 
@@ -221,6 +272,9 @@ msgstr "Turvakielto"
 
 msgid "Driver's license checked"
 msgstr "Ajokortti"
+
+msgid "Language"
+msgstr "Kieli"
 
 msgid "Customers"
 msgstr "Asiakkaat"
@@ -268,7 +322,7 @@ msgid "Online payment"
 msgstr "Verkkomaksu"
 
 msgid "Cashier payment"
-msgstr "Kanssamaksu"
+msgstr "Kassamaksu"
 
 msgid "Draft"
 msgstr "Luonnos"
@@ -281,6 +335,9 @@ msgstr "Talpan checkoutin url"
 
 msgid "Talpa receipt_url"
 msgstr "Talpan kuitin url"
+
+msgid "Payment type"
+msgstr "Maksutyyppi"
 
 msgid "Order status"
 msgstr "Tilauksen tila"
@@ -318,8 +375,8 @@ msgstr "Tilausrivi"
 msgid "Order items"
 msgstr "Tilausrivit"
 
-msgid "Resident"
-msgstr "Asukas"
+msgid "Company permit"
+msgstr "Yrityspysäköintitunnus"
 
 msgid "Fixed period"
 msgstr "Määräaikainen"
@@ -385,6 +442,9 @@ msgstr "Alue (2D)"
 msgid "Parking zones"
 msgstr "Pysäköintialueet"
 
+msgid "Resident"
+msgstr "Asukas"
+
 msgid "Year"
 msgstr "Vuosi"
 
@@ -418,17 +478,8 @@ msgstr "Tuotteet"
 msgid "Open"
 msgstr "Avoin"
 
-msgid "In progress"
-msgstr "Käsittelyssä"
-
-msgid "Permit"
-msgstr "Pysäköintitunnus"
-
-msgid "Refund"
-msgstr "Palautus"
-
-msgid "Refunds"
-msgstr "Palautukset"
+msgid "Request for approval"
+msgstr "Hyväksyttävänä"
 
 msgid "Electric"
 msgstr "Sähkö"
@@ -575,11 +626,14 @@ msgstr "Pysäköintialueiden ja aktiivisten tunnusten konfliktitilanne"
 msgid ""
 "Could not find vehicle detail with given {registration_number} registration "
 "number"
-msgstr "Rekisteritunnukselle {registration_number} ei löytynyt ajoneuvon tietoja"
+msgstr ""
+"Rekisteritunnukselle {registration_number} ei löytynyt ajoneuvon tietoja"
 
 #, python-brace-format
 msgid "Unsupported vehicle class {vehicle_class} for {registration_number}"
-msgstr "Ajoneuvoluokkaa {vehicle_class} ei tueta rekisteritunnukselle {registration_number}"
+msgstr ""
+"Ajoneuvoluokkaa {vehicle_class} ei tueta rekisteritunnukselle "
+"{registration_number}"
 
 msgid "Could not find any driving license information for given customer"
 msgstr "Asiakkaan ajokorttitietoja ei löydetty"
@@ -601,8 +655,8 @@ msgid ""
 "* The permit is valid from the selected start date once the payment has been "
 "accepted"
 msgstr ""
-"* Tunnus on voimassa valitsemastasi alkamispäivästä lähtien, kun maksusuoritus on "
-"hyväksytty."
+"* Tunnus on voimassa valitsemastasi alkamispäivästä lähtien, kun "
+"maksusuoritus on hyväksytty."
 
 msgid "Parking permit expiration date"
 msgstr "Pysäköintitunnuksen päättymispäivä"
