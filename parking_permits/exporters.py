@@ -195,16 +195,8 @@ class ParkingPermitPDF(BasePDF):
             return None
         return permit_qs.first()
 
-    def set_content(self, obj):
-        permit = obj
-        self.set_font("Arial", "B", 16)
-        self.cell(0, 14, _("Resident permit"), 0, 1)
-        self.set_draw_color(0, 0, 139)
-        self.set_line_width(0.5)
-        self.line(11, 45, 200, 45)
-        self.ln(10)
-        self.set_font("Arial", "", 12)
-        content = [
+    def get_permit_content(self, permit):
+        return [
             _("Permit ID") + ": " + f"{permit.id}",
             _("Customer")
             + ": "
@@ -221,12 +213,91 @@ class ParkingPermitPDF(BasePDF):
             + " - "
             + permit.end_time.strftime(DATETIME_FORMAT),
         ]
+
+    def set_content(self, obj):
+        self.set_font("Arial", "B", 16)
+        self.cell(0, 14, _("Resident permit"), 0, 1)
+        self.set_draw_color(0, 0, 139)
+        self.set_line_width(0.5)
+        self.line(11, 45, 200, 45)
+        self.ln(10)
+        self.set_font("Arial", "", 12)
+        content = self.get_permit_content(obj)
         for line in content:
             self.cell(0, 7, line, 0, 1)
 
 
+class RefundPDF(ParkingPermitPDF):
+    def get_title(self):
+        return _("Refunds")
+
+    def get_source_object(self, object_id):
+        refund_qs = Refund.objects.filter(pk=object_id)
+        if not refund_qs.exists():
+            return None
+        return refund_qs.first()
+
+    @staticmethod
+    def get_refund_content(refund):
+        return [
+            _("Refund ID") + ": " + f"{refund.id}",
+            _("Customer")
+            + ": "
+            + f"{refund.order.customer.first_name} {refund.order.customer.last_name}",
+            _("Amount") + ": " + f"{refund.amount} e (" + _("incl. VAT") + " 24%)",
+            _("IBAN") + ": " + f"{refund.iban}",
+            _("Status") + ": " + f"{refund.get_status_display()}",
+            _("Extra info") + ": " + f"{refund.description}",
+        ]
+
+    @staticmethod
+    def get_order_content(order):
+        return [
+            _("Order ID") + ": " + f"{order.id}",
+            _("Order payment type") + ": " + f"{order.get_payment_type_display()}",
+            _("Order payment time")
+            + ": "
+            + f"{order.paid_time.strftime(DATETIME_FORMAT)}",
+        ]
+
+    def set_content(self, obj):
+        self.set_font("Arial", "B", 16)
+        self.cell(0, 14, _("Refund"), 0, 1)
+        self.set_draw_color(0, 0, 139)
+        self.set_line_width(0.5)
+        self.line(11, 45, 200, 45)
+        self.ln(5)
+        self.set_font("Arial", "", 12)
+
+        content = self.get_refund_content(obj)
+        for line in content:
+            self.cell(0, 7, line, 0, 1)
+
+        self.ln(5)
+        self.set_font("Arial", "B", 12)
+        self.cell(0, 7, _("Order info"), 0, 1)
+        self.set_font("Arial", "", 12)
+        order_content = self.get_order_content(obj.order)
+        for line in order_content:
+            self.cell(0, 7, line, 0, 1)
+
+        permits = obj.order.permits.order_by("-primary_vehicle")
+        for permit in permits:
+            self.ln(5)
+            self.set_font("Arial", "B", 12)
+            permit_header = (
+                _("Primary permit") if permit.primary_vehicle else _("Secondary permit")
+            )
+            self.cell(0, 7, permit_header, 0, 1)
+            self.set_font("Arial", "", 12)
+            permit_content = self.get_permit_content(permit)
+            for line in permit_content:
+                self.cell(0, 7, line, 0, 1)
+
+
 PDF_MODEL_MAPPING = {
     "permit": ParkingPermitPDF,
+    "refund": RefundPDF,
 }
 
 
