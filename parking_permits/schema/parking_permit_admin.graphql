@@ -396,4 +396,6 @@ type Mutation {
   updateLowEmissionCriterion(criterionId: ID!, criterion: LowEmissionCriterionInput!): MutationResponse
   deleteLowEmissionCriterion(criterionId: ID!): MutationResponse
   createLowEmissionCriterion(criterion: LowEmissionCriterionInput!): MutationResponse
+  requestForApproval(ids: [ID]!): Int
+  acceptRefunds(ids: [ID]!): Int
 }

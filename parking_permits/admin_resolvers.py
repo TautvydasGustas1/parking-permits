@@ -40,6 +40,7 @@ from .exceptions import (
 from .forms import RefundSearchForm
 from .models.order import OrderStatus
 from .models.parking_permit import ContractType
+from .models.refund import RefundStatus
 from .models.vehicle import is_low_emission_vehicle
 from .paginator import QuerySetPaginator
 from .reversion import EventType, get_obj_changelogs, get_reversion_comment
@@ -518,6 +519,24 @@ def resolve_refunds(obj, info, page_input, order_by=None, search_params=None):
         "page_info": paginator.page_info,
         "objects": paginator.object_list,
     }
+
+
+@mutation.field("requestForApproval")
+@is_ad_admin
+@convert_kwargs_to_snake_case
+def resolve_request_for_approval(obj, info, ids):
+    qs = Refund.objects.filter(id__in=ids, status=RefundStatus.OPEN)
+    qs.update(status=RefundStatus.REQUEST_FOR_APPROVAL)
+    return qs.count()
+
+
+@mutation.field("acceptRefunds")
+@is_ad_admin
+@convert_kwargs_to_snake_case
+def resolve_accept_refunds(obj, info, ids):
+    qs = Refund.objects.filter(id__in=ids, status=RefundStatus.REQUEST_FOR_APPROVAL)
+    qs.update(status=RefundStatus.ACCEPTED)
+    return qs.count()
 
 
 @query.field("refund")
