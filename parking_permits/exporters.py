@@ -257,7 +257,7 @@ class RefundPDF(ParkingPermitPDF):
             _("Order payment type") + ": " + f"{order.get_payment_type_display()}",
             _("Order payment time")
             + ": "
-            + f"{order.paid_time.strftime(DATETIME_FORMAT)}",
+            + f"{order.paid_time.strftime(DATETIME_FORMAT) if order.paid_time else ''}",
         ]
 
     def set_content(self, obj):
