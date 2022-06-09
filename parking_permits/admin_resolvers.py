@@ -13,6 +13,7 @@ from django.conf import settings
 from django.contrib.gis.geos import Point
 from django.db import transaction
 from django.db.models import Q
+from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
 from parking_permits.models import (
@@ -534,8 +535,13 @@ def resolve_request_for_approval(obj, info, ids):
 @is_ad_admin
 @convert_kwargs_to_snake_case
 def resolve_accept_refunds(obj, info, ids):
+    request = info.context["request"]
     qs = Refund.objects.filter(id__in=ids, status=RefundStatus.REQUEST_FOR_APPROVAL)
-    qs.update(status=RefundStatus.ACCEPTED)
+    qs.update(
+        status=RefundStatus.ACCEPTED,
+        accepted_time=timezone.now(),
+        accepted_by=request.user,
+    )
     return qs.count()
 
 
