@@ -31,7 +31,7 @@ class Refund(TimestampedModelMixin, UserStampedModelMixin):
         default=RefundStatus.OPEN,
     )
     description = models.TextField(_("Description"), blank=True)
-    accepted_time = models.DateTimeField(_("Accepted time"), null=True, blank=True)
+    accepted_at = models.DateTimeField(_("Accepted at"), null=True, blank=True)
     accepted_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         verbose_name=_("Accepted by"),

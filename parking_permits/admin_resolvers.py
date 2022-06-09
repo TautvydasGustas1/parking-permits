@@ -539,7 +539,7 @@ def resolve_accept_refunds(obj, info, ids):
     qs = Refund.objects.filter(id__in=ids, status=RefundStatus.REQUEST_FOR_APPROVAL)
     qs.update(
         status=RefundStatus.ACCEPTED,
-        accepted_time=timezone.now(),
+        accepted_at=timezone.now(),
         accepted_by=request.user,
     )
     return qs.count()

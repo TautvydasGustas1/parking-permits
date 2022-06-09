@@ -26,9 +26,9 @@ class Migration(migrations.Migration):
         ),
         migrations.AddField(
             model_name="refund",
-            name="accepted_time",
+            name="accepted_at",
             field=models.DateTimeField(
-                blank=True, null=True, verbose_name="Accepted time"
+                blank=True, null=True, verbose_name="Accepted at"
             ),
         ),
     ]
