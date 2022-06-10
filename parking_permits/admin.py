@@ -119,7 +119,11 @@ class RefundAdmin(admin.ModelAdmin):
         "iban",
         "order",
         "amount",
+        "status",
+        "created_at",
+        "accepted_at",
     )
+    list_select_related = ("order",)
 
 
 @admin.register(Product)
