@@ -109,6 +109,7 @@ class ParkingPermit(SerializableMixin, TimestampedModelMixin):
     end_time = models.DateTimeField(_("End time"), blank=True, null=True)
     primary_vehicle = models.BooleanField(default=True)
     vehicle_changed = models.BooleanField(default=False)
+    synced_with_parkkihubi = models.BooleanField(default=False)
     vehicle_changed_date = models.DateField(
         _("Vehicle changed date"), null=True, blank=True
     )
