@@ -549,6 +549,11 @@ def resolve_accept_refunds(obj, info, ids):
         accepted_at=timezone.now(),
         accepted_by=request.user,
     )
+    accepted_refunds = Refund.objects.filter(
+        id__in=ids, status=RefundStatus.ACCEPTED
+    ).select_related("order__customer")
+    for refund in accepted_refunds:
+        send_refund_email(RefundEmailType.ACCEPTED, refund.order.customer)
     return qs.count()
 
 
