@@ -229,6 +229,7 @@ LOGGING = {
 CRONJOBS = [
     ("22 00 * * *", "parking_permits.cron.automatic_expiration_of_permits"),
     ("59 23 * * *", "parking_permits.cron.automatic_remove_obsolete_customer_data"),
+    ("*/30 * * * *", "parking_permits.cron.automatic_syncing_of_permits_to_parkkihubi"),
 ]
 
 # GDPR API

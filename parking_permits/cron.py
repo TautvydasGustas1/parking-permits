@@ -2,6 +2,7 @@ import logging
 
 from django.utils import timezone
 
+from parking_permits.exceptions import ParkkihubiPermitError
 from parking_permits.models import Customer, ParkingPermit
 from parking_permits.models.parking_permit import ParkingPermitStatus
 
@@ -26,3 +27,12 @@ def automatic_remove_obsolete_customer_data():
         "Automatically removing obsolte customer data completed. "
         f"{count} customers are removed."
     )
+
+
+def automatic_syncing_of_permits_to_parkkihubi():
+    permits = ParkingPermit.objects.filter(synced_with_parkkihubi=False)
+    for permit in permits:
+        try:
+            permit.update_parkkihubi_permit()
+        except ParkkihubiPermitError:
+            permit.create_parkkihubi_permit()
