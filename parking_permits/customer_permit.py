@@ -24,7 +24,12 @@ from .models.parking_permit import (
     ParkingPermitStatus,
 )
 from .reversion import EventType, get_reversion_comment
-from .services.mail import PermitEmailType, send_permit_email
+from .services.mail import (
+    PermitEmailType,
+    RefundEmailType,
+    send_permit_email,
+    send_refund_email,
+)
 from .utils import diff_months_floor, get_end_time
 
 IMMEDIATELY = ParkingPermitStartType.IMMEDIATELY
@@ -247,6 +252,7 @@ class CustomerPermit:
                 iban=iban,
                 description=f"Refund for ending permits {','.join([str(permit.id) for permit in permits])}",
             )
+            send_refund_email(RefundEmailType.CREATED, self.customer)
         Order.objects.create_renewal_order(
             customer=self.customer, status=OrderStatus.CONFIRMED
         )
