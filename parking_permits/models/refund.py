@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.contrib.gis.db import models
 from django.utils.translation import gettext_lazy as _
 
@@ -30,6 +31,14 @@ class Refund(TimestampedModelMixin, UserStampedModelMixin):
         default=RefundStatus.OPEN,
     )
     description = models.TextField(_("Description"), blank=True)
+    accepted_at = models.DateTimeField(_("Accepted at"), null=True, blank=True)
+    accepted_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        verbose_name=_("Accepted by"),
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+    )
 
     class Meta:
         verbose_name = _("Refund")

@@ -102,6 +102,9 @@ type RefundNode {
   createdBy: String
   modifiedAt: String
   modifiedBy: String
+  acceptedAt: String
+  acceptedBy: String
+  order: OrderNode
 }
 
 type OrderNode {
