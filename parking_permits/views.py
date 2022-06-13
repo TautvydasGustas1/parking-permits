@@ -34,8 +34,8 @@ from .serializers import (
     RightOfPurchaseResponseSerializer,
     TalpaPayloadSerializer,
 )
-from .services import talpa
 from .services.mail import PermitEmailType, send_permit_email
+from .utils import get_meta_value, snake_to_camel_dict
 
 logger = logging.getLogger("db")
 
@@ -57,9 +57,7 @@ class TalpaResolveAvailability(APIView):
             f"Data received for resolve availability = {json.dumps(request.data)}"
         )
         shared_product_id = request.data.get("productId")
-        res = talpa.snake_to_camel_dict(
-            {"product_id": shared_product_id, "value": True}
-        )
+        res = snake_to_camel_dict({"product_id": shared_product_id, "value": True})
         logger.info(f"Resolve availability response = {json.dumps(res)}")
         return Response(res)
 
@@ -76,7 +74,7 @@ class TalpaResolvePrice(APIView):
     def post(self, request, format=None):
         logger.info(f"Data received for resolve price = {json.dumps(request.data)}")
         meta = request.data.get("orderItem").get("meta")
-        permit_id = talpa.get_meta_value(meta, "permitId")
+        permit_id = get_meta_value(meta, "permitId")
 
         if permit_id is None:
             return Response(
@@ -99,7 +97,7 @@ class TalpaResolvePrice(APIView):
             logger.error(f"Resolve price error = {str(e)}")
             return Response({"message": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
-        response = talpa.snake_to_camel_dict(
+        response = snake_to_camel_dict(
             {
                 "row_price_net": float(price - price_vat),
                 "row_price_vat": float(price_vat),
@@ -130,7 +128,7 @@ class TalpaResolveRightOfPurchase(APIView):
             f"Data received for resolve right of purchase = {json.dumps(request.data)}"
         )
         meta = request.data.get("orderItem").get("meta")
-        permit_id = talpa.get_meta_value(meta, "permitId")
+        permit_id = get_meta_value(meta, "permitId")
         user_id = request.data.get("userId")
 
         try:
@@ -148,7 +146,7 @@ class TalpaResolveRightOfPurchase(APIView):
                 and has_valid_driving_licence
                 and not vehicle.is_due_for_inspection()
             )
-            res = talpa.snake_to_camel_dict(
+            res = snake_to_camel_dict(
                 {
                     "error_message": "",
                     "right_of_purchase": right_of_purchase,
@@ -156,7 +154,7 @@ class TalpaResolveRightOfPurchase(APIView):
                 }
             )
         except Exception as e:
-            res = talpa.snake_to_camel_dict(
+            res = snake_to_camel_dict(
                 {
                     "error_message": str(e),
                     "right_of_purchase": False,
