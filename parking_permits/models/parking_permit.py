@@ -467,6 +467,8 @@ class ParkingPermit(SerializableMixin, TimestampedModelMixin):
             data=json.dumps(self._get_parkkihubi_data()),
             headers=self._get_parkkihubi_headers(),
         )
+        self.synced_with_parkkihubi = response.status_code == 200
+        self.save()
 
         if response.status_code == 200:
             logger.info("Parkkihubi update permit")
@@ -487,6 +489,9 @@ class ParkingPermit(SerializableMixin, TimestampedModelMixin):
             data=json.dumps(self._get_parkkihubi_data()),
             headers=self._get_parkkihubi_headers(),
         )
+        self.synced_with_parkkihubi = response.status_code == 201
+        self.save()
+
         if response.status_code == 201:
             logger.info("Parkkihubi permit created")
         else:
