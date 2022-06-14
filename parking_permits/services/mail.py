@@ -24,16 +24,49 @@ permit_email_templates = {
 
 
 def send_permit_email(action, permit):
-    subject = permit_email_subjects[action]
-    template = permit_email_templates[action]
     with translation.override(permit.customer.language):
+        subject = permit_email_subjects[action]
+        template = permit_email_templates[action]
         html_message = render_to_string(template, context={"permit": permit})
-    plain_message = strip_tags(html_message)
-    recipient_list = [permit.customer.email]
-    mail.send_mail(
-        subject,
-        plain_message,
-        None,
-        recipient_list,
-        html_message=html_message,
-    )
+        plain_message = strip_tags(html_message)
+        recipient_list = [permit.customer.email]
+        mail.send_mail(
+            subject,
+            plain_message,
+            None,
+            recipient_list,
+            html_message=html_message,
+        )
+
+
+class RefundEmailType:
+    CREATED = "created"
+    ACCEPTED = "accepted"
+
+
+refund_email_subjects = {
+    RefundEmailType.CREATED: "Pysäköintitunnukset: Palautus otettu käsittelyyn",
+    RefundEmailType.ACCEPTED: "Pysäköintitunnukset: Palautus on hyväksytty",
+}
+
+
+refund_email_templates = {
+    RefundEmailType.CREATED: "emails/refund_created.html",
+    RefundEmailType.ACCEPTED: "emails/refund_accepted.html",
+}
+
+
+def send_refund_email(action, customer):
+    with translation.override(customer.language):
+        subject = refund_email_subjects[action]
+        template = refund_email_templates[action]
+        html_message = render_to_string(template)
+        plain_message = strip_tags(html_message)
+        recipient_list = [customer.email]
+        mail.send_mail(
+            subject,
+            plain_message,
+            None,
+            recipient_list,
+            html_message=html_message,
+        )

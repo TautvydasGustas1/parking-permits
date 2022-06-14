@@ -27,7 +27,12 @@ from .models.order import Order, OrderStatus
 from .models.parking_permit import ContractType, ParkingPermit, ParkingPermitStatus
 from .services.hel_profile import HelsinkiProfile
 from .services.kmo import get_address_detail_from_kmo
-from .services.mail import PermitEmailType, send_permit_email
+from .services.mail import (
+    PermitEmailType,
+    RefundEmailType,
+    send_permit_email,
+    send_refund_email,
+)
 from .services.traficom import Traficom
 from .talpa.order import TalpaOrderManager
 
@@ -239,6 +244,7 @@ def resolve_update_permit_vehicle(_, info, permit_id, vehicle_id, iban=None):
                 description=f"Refund for updating permits zone (customer switch vehicle to: {new_vehicle})",
             )
             logger.info(f"Refund for updating permits zone created: {refund}")
+            send_refund_email(RefundEmailType.CREATED, customer)
 
         if permit_total_price_change > 0:
             checkout_url = TalpaOrderManager.send_to_talpa(new_order)
@@ -351,6 +357,7 @@ def resolve_change_address(_, info, address_id, iban=None):
                     description=f"Refund for updating permits zone (customer switch address to: {address})",
                 )
                 logger.info(f"Refund for updating permits zone created: {refund}")
+                send_refund_email(RefundEmailType.CREATED, customer)
 
         if customer_total_price_change > 0:
             # go through talpa checkout process if the price of

@@ -46,7 +46,12 @@ from .models.vehicle import is_low_emission_vehicle
 from .paginator import QuerySetPaginator
 from .reversion import EventType, get_obj_changelogs, get_reversion_comment
 from .services.dvv import get_person_info
-from .services.mail import PermitEmailType, send_permit_email
+from .services.mail import (
+    PermitEmailType,
+    RefundEmailType,
+    send_permit_email,
+    send_refund_email,
+)
 from .services.traficom import Traficom
 from .utils import apply_filtering, apply_ordering, get_end_time, get_permit_prices
 
@@ -360,6 +365,7 @@ def resolve_update_resident_permit(obj, info, permit_id, permit_info, iban=None)
                 description=f"Refund for updating permit: {permit.id}",
             )
             logger.info(f"Refund for lowered permit price created: {refund}")
+            send_refund_email(RefundEmailType.CREATED, customer)
         logger.info(f"Creating renewal order for permit: {permit.id}")
         new_order = Order.objects.create_renewal_order(
             customer, status=OrderStatus.CONFIRMED
@@ -390,6 +396,7 @@ def resolve_end_permit(obj, info, permit_id, end_type, iban=None):
             iban=iban,
             description=description,
         )
+        send_refund_email(RefundEmailType.CREATED, permit.customer)
     if permit.is_open_ended:
         # TODO: handle open ended. Currently how to handle
         # open ended permit are not defined.
@@ -542,6 +549,11 @@ def resolve_accept_refunds(obj, info, ids):
         accepted_at=timezone.now(),
         accepted_by=request.user,
     )
+    accepted_refunds = Refund.objects.filter(
+        id__in=ids, status=RefundStatus.ACCEPTED
+    ).select_related("order__customer")
+    for refund in accepted_refunds:
+        send_refund_email(RefundEmailType.ACCEPTED, refund.order.customer)
     return qs.count()
 
 
