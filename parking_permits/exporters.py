@@ -5,7 +5,6 @@ from django.utils.translation import ugettext_lazy as _
 from fpdf import FPDF
 
 from parking_permits.models import Order, ParkingPermit, Product, Refund
-from parking_permits.utils import apply_filtering, apply_ordering
 
 DATETIME_FORMAT = "%-d.%-m.%Y, %H:%M"
 DATE_FORMAT = "%-d.%-m.%Y"
@@ -134,26 +133,16 @@ HEADERS_MAPPING = {
 
 
 class DataExporter:
-    def __init__(self, data_type, order_by=None, search_items=None):
+    def __init__(self, data_type, queryset):
         self.data_type = data_type
-        self.order_by = order_by
-        self.search_items = search_items
-
-    def get_queryset(self):
-        model_class = MODEL_MAPPING[self.data_type]
-        qs = model_class.objects.all()
-        if self.order_by:
-            qs = apply_ordering(qs, self.order_by)
-        if self.search_items:
-            qs = apply_filtering(qs, self.search_items)
-        return qs
+        self.queryset = queryset
 
     def get_headers(self):
         return HEADERS_MAPPING[self.data_type]
 
     def get_rows(self):
         row_getter = ROW_GETTER_MAPPING[self.data_type]
-        return [row_getter(item) for item in self.get_queryset()]
+        return [row_getter(item) for item in self.queryset]
 
 
 class BasePDF(FPDF, metaclass=abc.ABCMeta):
