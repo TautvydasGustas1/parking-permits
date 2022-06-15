@@ -19,6 +19,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from .decorators import require_ad_admin
+from .exceptions import ParkkihubiPermitError
 from .exporters import DataExporter, PdfExporter
 from .forms import DataExportForm, PdfExportForm
 from .models import Customer, Order
@@ -194,7 +195,10 @@ class OrderView(APIView):
                 permit.save()
                 send_permit_email(PermitEmailType.CREATED, permit)
                 if not settings.DEBUG:
-                    permit.create_parkkihubi_permit()
+                    try:
+                        permit.update_parkkihubi_permit()
+                    except ParkkihubiPermitError:
+                        permit.create_parkkihubi_permit()
 
         logger.info(f"{order} is confirmed and order permits are set to VALID ")
         return Response({"message": "Order received"}, status=200)
