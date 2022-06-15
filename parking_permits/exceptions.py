@@ -80,3 +80,7 @@ class TraficomFetchVehicleError(ParkingPermitBaseException):
 
 class DVVIntegrationError(ParkingPermitBaseException):
     pass
+
+
+class SearchError(ParkingPermitBaseException):
+    pass

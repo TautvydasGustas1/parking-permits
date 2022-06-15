@@ -36,9 +36,10 @@ from .exceptions import (
     ParkingZoneError,
     PermitLimitExceeded,
     RefundError,
+    SearchError,
     UpdatePermitError,
 )
-from .forms import RefundSearchForm
+from .forms import PermitSearchForm, RefundSearchForm
 from .models.order import OrderStatus
 from .models.parking_permit import ContractType
 from .models.refund import RefundStatus
@@ -66,17 +67,18 @@ schema_bindables = [query, mutation, PermitDetail, snake_case_fallback_resolvers
 @query.field("permits")
 @is_ad_admin
 @convert_kwargs_to_snake_case
-def resolve_permits(obj, info, page_input, order_by=None, search_items=None):
-    permits = ParkingPermit.objects.all()
+def resolve_permits(obj, info, page_input, order_by=None, search_params=None):
+    form_data = {**page_input}
     if order_by:
-        permits = apply_ordering(permits, order_by)
-    if search_items:
-        permits = apply_filtering(permits, search_items)
-    paginator = QuerySetPaginator(permits, page_input)
-    return {
-        "page_info": paginator.page_info,
-        "objects": paginator.object_list,
-    }
+        form_data.update(order_by)
+    if search_params:
+        form_data.update(search_params)
+
+    form = PermitSearchForm(form_data)
+    if not form.is_valid():
+        logger.error(f"Permit Search Error: {form.errors}")
+        raise SearchError("Search error")
+    return form.get_paged_queryset()
 
 
 @query.field("permitDetail")

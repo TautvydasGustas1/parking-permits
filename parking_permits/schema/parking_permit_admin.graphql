@@ -162,8 +162,7 @@ input PageInput {
 }
 
 input OrderByInput {
-  field: String!
-  orderFields: [String]!
+  orderField: [String]!
   orderDirection: OrderDirection!
 }
 
@@ -243,6 +242,11 @@ type PermitPriceNode {
   quantity: Int!
 }
 
+input PermitSearchParamsInput {
+  q: String!
+  status: String!
+}
+
 input RefundSearchParamsInput {
   q: String!
   startDate: String!
@@ -255,7 +259,7 @@ type Query {
   permits(
     pageInput: PageInput!
     orderBy: OrderByInput
-    searchItems: [SearchItem]
+    searchParams: PermitSearchParamsInput
    ): PagedPermits!
   permitDetail(permitId: ID!): PermitDetailNode!
   zones: [ZoneNode]
