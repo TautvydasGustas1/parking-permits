@@ -6,7 +6,7 @@ from django.db import models
 from django.db.models import Q
 from django.utils.translation import ugettext as _
 
-from parking_permits.models import Address, Product
+from parking_permits.models import Address, LowEmissionCriteria, Product
 from parking_permits.models.order import Order, OrderPaymentType
 from parking_permits.models.parking_permit import ParkingPermit, ParkingPermitStatus
 from parking_permits.models.refund import Refund, RefundStatus
@@ -281,4 +281,18 @@ class AddressSearchForm(SearchFormBase):
             "city": ["city"],
             "citySv": ["city_sv"],
             "zone": ["_zone__name"],
+        }
+
+
+class LowEmissionCriteriaSearchForm(SearchFormBase):
+    def get_model_class(self):
+        return LowEmissionCriteria
+
+    def get_order_fields_mapping(self):
+        return {
+            "powerType": ["power_type"],
+            "euroMinClassLimit": ["euro_min_class_limit"],
+            "nedcMaxEmissionLimit": ["nedc_max_emission_limit"],
+            "wltpMaxEmissionLimit": ["wltp_max_emission_limit"],
+            "validPeriod": ["start_date"],
         }

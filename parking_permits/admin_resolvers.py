@@ -40,6 +40,7 @@ from .exceptions import (
 )
 from .forms import (
     AddressSearchForm,
+    LowEmissionCriteriaSearchForm,
     OrderSearchForm,
     PermitSearchForm,
     ProductSearchForm,
@@ -49,7 +50,6 @@ from .models.order import OrderStatus
 from .models.parking_permit import ContractType
 from .models.refund import RefundStatus
 from .models.vehicle import is_low_emission_vehicle
-from .paginator import QuerySetPaginator
 from .reversion import EventType, get_obj_changelogs, get_reversion_comment
 from .services.dvv import get_person_info
 from .services.mail import (
@@ -59,7 +59,7 @@ from .services.mail import (
     send_refund_email,
 )
 from .services.traficom import Traficom
-from .utils import apply_filtering, apply_ordering, get_end_time, get_permit_prices
+from .utils import get_end_time, get_permit_prices
 
 logger = logging.getLogger("db")
 
@@ -663,19 +663,16 @@ def resolve_create_address(obj, info, address):
 @query.field("lowEmissionCriteria")
 @is_ad_admin
 @convert_kwargs_to_snake_case
-def resolve_low_emission_criteria(
-    obj, info, page_input, order_by=None, search_items=None
-):
-    qs = LowEmissionCriteria.objects.all().order_by("power_type")
+def resolve_low_emission_criteria(obj, info, page_input, order_by=None):
+    form_data = {**page_input}
     if order_by:
-        qs = apply_ordering(qs, order_by)
-    if search_items:
-        qs = apply_filtering(qs, search_items)
-    paginator = QuerySetPaginator(qs, page_input)
-    return {
-        "page_info": paginator.page_info,
-        "objects": paginator.object_list,
-    }
+        form_data.update(order_by)
+
+    form = LowEmissionCriteriaSearchForm(form_data)
+    if not form.is_valid():
+        logger.error(f"Low emission criteria Search Error: {form.errors}")
+        raise SearchError("Low emission criteria search error")
+    return form.get_paged_queryset()
 
 
 @query.field("lowEmissionCriterion")
