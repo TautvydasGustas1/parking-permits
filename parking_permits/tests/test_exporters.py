@@ -7,6 +7,7 @@ from parking_permits.exporters import (
     REFUND_HEADERS,
     DataExporter,
 )
+from parking_permits.models import Order, ParkingPermit, Product, Refund
 from parking_permits.tests.factories import ParkingZoneFactory
 from parking_permits.tests.factories.customer import CustomerFactory
 from parking_permits.tests.factories.order import OrderFactory, OrderItemFactory
@@ -26,18 +27,10 @@ class DataExporterTestCase(TestCase):
         ParkingPermitFactory(customer=self.customer_a, parking_zone=self.zone_a)
         ParkingPermitFactory(customer=self.customer_a, parking_zone=self.zone_b)
         ParkingPermitFactory(customer=self.customer_b, parking_zone=self.zone_b)
-        order_by = {
-            "order_fields": ["customer__national_id_number"],
-            "order_direction": "DESC",
-        }
-        search_items = [
-            {
-                "connector": "and",
-                "fields": [{"match_type": "exact", "field_name": "parking_zone__name"}],
-                "value": "B",
-            }
-        ]
-        exporter = DataExporter("permits", order_by, search_items)
+        qs = ParkingPermit.objects.filter(parking_zone__name="B").order_by(
+            "-customer__national_id_number"
+        )
+        exporter = DataExporter("permits", qs)
         self.assertEqual(exporter.get_headers(), PERMIT_HEADERS)
         rows = exporter.get_rows()
         self.assertEqual(len(rows), 2)
@@ -51,7 +44,7 @@ class DataExporterTestCase(TestCase):
         OrderItemFactory(order=order_2)
         order_3 = OrderFactory(customer=self.customer_b)
         OrderItemFactory(order=order_3)
-        exporter = DataExporter("orders")
+        exporter = DataExporter("orders", Order.objects.all())
         self.assertEqual(exporter.get_headers(), ORDER_HEADERS)
         rows = exporter.get_rows()
         self.assertEqual(len(rows), 3)
@@ -60,7 +53,7 @@ class DataExporterTestCase(TestCase):
         RefundFactory()
         RefundFactory()
         RefundFactory()
-        exporter = DataExporter("refunds")
+        exporter = DataExporter("refunds", Refund.objects.all())
         self.assertEqual(exporter.get_headers(), REFUND_HEADERS)
         rows = exporter.get_rows()
         self.assertEqual(len(rows), 3)
@@ -69,7 +62,7 @@ class DataExporterTestCase(TestCase):
         ProductFactory()
         ProductFactory()
         ProductFactory()
-        exporter = DataExporter("products")
+        exporter = DataExporter("products", Product.objects.all())
         self.assertEqual(exporter.get_headers(), PRODUCT_HEADERS)
         rows = exporter.get_rows()
         self.assertEqual(len(rows), 3)

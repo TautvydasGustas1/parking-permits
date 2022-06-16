@@ -12,7 +12,6 @@ from dateutil.parser import isoparse
 from django.conf import settings
 from django.contrib.gis.geos import Point
 from django.db import transaction
-from django.db.models import Q
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
@@ -36,14 +35,21 @@ from .exceptions import (
     ParkingZoneError,
     PermitLimitExceeded,
     RefundError,
+    SearchError,
     UpdatePermitError,
 )
-from .forms import RefundSearchForm
+from .forms import (
+    AddressSearchForm,
+    LowEmissionCriteriaSearchForm,
+    OrderSearchForm,
+    PermitSearchForm,
+    ProductSearchForm,
+    RefundSearchForm,
+)
 from .models.order import OrderStatus
 from .models.parking_permit import ContractType
 from .models.refund import RefundStatus
 from .models.vehicle import is_low_emission_vehicle
-from .paginator import QuerySetPaginator
 from .reversion import EventType, get_obj_changelogs, get_reversion_comment
 from .services.dvv import get_person_info
 from .services.mail import (
@@ -53,7 +59,7 @@ from .services.mail import (
     send_refund_email,
 )
 from .services.traficom import Traficom
-from .utils import apply_filtering, apply_ordering, get_end_time, get_permit_prices
+from .utils import get_end_time, get_permit_prices
 
 logger = logging.getLogger("db")
 
@@ -66,17 +72,18 @@ schema_bindables = [query, mutation, PermitDetail, snake_case_fallback_resolvers
 @query.field("permits")
 @is_ad_admin
 @convert_kwargs_to_snake_case
-def resolve_permits(obj, info, page_input, order_by=None, search_items=None):
-    permits = ParkingPermit.objects.all()
+def resolve_permits(obj, info, page_input, order_by=None, search_params=None):
+    form_data = {**page_input}
     if order_by:
-        permits = apply_ordering(permits, order_by)
-    if search_items:
-        permits = apply_filtering(permits, search_items)
-    paginator = QuerySetPaginator(permits, page_input)
-    return {
-        "page_info": paginator.page_info,
-        "objects": paginator.object_list,
-    }
+        form_data.update(order_by)
+    if search_params:
+        form_data.update(search_params)
+
+    form = PermitSearchForm(form_data)
+    if not form.is_valid():
+        logger.error(f"Permit Search Error: {form.errors}")
+        raise SearchError("Permit search error")
+    return form.get_paged_queryset()
 
 
 @query.field("permitDetail")
@@ -416,17 +423,16 @@ def resolve_end_permit(obj, info, permit_id, end_type, iban=None):
 @query.field("products")
 @is_ad_admin
 @convert_kwargs_to_snake_case
-def resolve_products(obj, info, page_input, order_by=None, search_items=None):
-    products = Product.objects.all().order_by("zone__name")
+def resolve_products(obj, info, page_input, order_by=None):
+    form_data = {**page_input}
     if order_by:
-        products = apply_ordering(products, order_by)
-    if search_items:
-        products = apply_filtering(products, search_items)
-    paginator = QuerySetPaginator(products, page_input)
-    return {
-        "page_info": paginator.page_info,
-        "objects": paginator.object_list,
-    }
+        form_data.update(order_by)
+
+    form = ProductSearchForm(form_data)
+    if not form.is_valid():
+        logger.error(f"Product Search Error: {form.errors}")
+        raise SearchError("Product search error")
+    return form.get_paged_queryset()
 
 
 @query.field("product")
@@ -493,40 +499,17 @@ def resolve_create_product(obj, info, product):
 @is_ad_admin
 @convert_kwargs_to_snake_case
 def resolve_refunds(obj, info, page_input, order_by=None, search_params=None):
-    qs = Refund.objects.all().order_by("-created_at")
+    form_data = {**page_input}
     if order_by:
-        qs = apply_ordering(qs, order_by)
+        form_data.update(order_by)
     if search_params:
-        form = RefundSearchForm(search_params)
-        if form.is_valid():
-            q = form.cleaned_data.get("q")
-            start_date = form.cleaned_data.get("start_date")
-            end_date = form.cleaned_data.get("end_date")
-            status = form.cleaned_data.get("status")
-            payment_types = form.cleaned_data.get("payment_types")
-            if q:
-                text_filters = (
-                    Q(name__icontains=q)
-                    | Q(order__permits__vehicle__registration_number__icontains=q)
-                    | Q(iban__icontains=q)
-                )
-                qs = qs.filter(text_filters)
-            if start_date:
-                qs = qs.filter(created_at__gte=start_date)
-            if end_date:
-                qs = qs.filter(created_at__lte=end_date)
-            if status and status != "ALL":
-                qs = qs.filter(status=status)
-            if payment_types:
-                qs = qs.filter(order__payment_type__in=payment_types)
-        else:
-            qs = Refund.objects.none()
+        form_data.update(search_params)
 
-    paginator = QuerySetPaginator(qs, page_input)
-    return {
-        "page_info": paginator.page_info,
-        "objects": paginator.object_list,
-    }
+    form = RefundSearchForm(form_data)
+    if not form.is_valid():
+        logger.error(f"Refund Search Error: {form.errors}")
+        raise SearchError("Refund search error")
+    return form.get_paged_queryset()
 
 
 @mutation.field("requestForApproval")
@@ -587,33 +570,31 @@ def resolve_update_refund(obj, info, refund_id, refund):
 @query.field("orders")
 @is_ad_admin
 @convert_kwargs_to_snake_case
-def resolve_orders(obj, info, page_input, order_by=None, search_items=None):
-    orders = Order.objects.filter(status=OrderStatus.CONFIRMED)
+def resolve_orders(obj, info, page_input, order_by=None):
+    form_data = {**page_input}
     if order_by:
-        orders = apply_ordering(orders, order_by)
-    if search_items:
-        orders = apply_filtering(orders, search_items)
-    paginator = QuerySetPaginator(orders, page_input)
-    return {
-        "page_info": paginator.page_info,
-        "objects": paginator.object_list,
-    }
+        form_data.update(order_by)
+
+    form = OrderSearchForm(form_data)
+    if not form.is_valid():
+        logger.error(f"Order Search Error: {form.errors}")
+        raise SearchError("Order search error")
+    return form.get_paged_queryset()
 
 
 @query.field("addresses")
 @is_ad_admin
 @convert_kwargs_to_snake_case
-def resolve_addresses(obj, info, page_input, order_by=None, search_items=None):
-    qs = Address.objects.all().order_by("street_name")
+def resolve_addresses(obj, info, page_input, order_by=None):
+    form_data = {**page_input}
     if order_by:
-        qs = apply_ordering(qs, order_by)
-    if search_items:
-        qs = apply_filtering(qs, search_items)
-    paginator = QuerySetPaginator(qs, page_input)
-    return {
-        "page_info": paginator.page_info,
-        "objects": paginator.object_list,
-    }
+        form_data.update(order_by)
+
+    form = AddressSearchForm(form_data)
+    if not form.is_valid():
+        logger.error(f"Address Search Error: {form.errors}")
+        raise SearchError("Address search error")
+    return form.get_paged_queryset()
 
 
 @query.field("address")
@@ -682,19 +663,16 @@ def resolve_create_address(obj, info, address):
 @query.field("lowEmissionCriteria")
 @is_ad_admin
 @convert_kwargs_to_snake_case
-def resolve_low_emission_criteria(
-    obj, info, page_input, order_by=None, search_items=None
-):
-    qs = LowEmissionCriteria.objects.all().order_by("power_type")
+def resolve_low_emission_criteria(obj, info, page_input, order_by=None):
+    form_data = {**page_input}
     if order_by:
-        qs = apply_ordering(qs, order_by)
-    if search_items:
-        qs = apply_filtering(qs, search_items)
-    paginator = QuerySetPaginator(qs, page_input)
-    return {
-        "page_info": paginator.page_info,
-        "objects": paginator.object_list,
-    }
+        form_data.update(order_by)
+
+    form = LowEmissionCriteriaSearchForm(form_data)
+    if not form.is_valid():
+        logger.error(f"Low emission criteria Search Error: {form.errors}")
+        raise SearchError("Low emission criteria search error")
+    return form.get_paged_queryset()
 
 
 @query.field("lowEmissionCriterion")

@@ -21,7 +21,13 @@ from rest_framework.views import APIView
 from .decorators import require_ad_admin
 from .exceptions import ParkkihubiPermitError
 from .exporters import DataExporter, PdfExporter
-from .forms import DataExportForm, PdfExportForm
+from .forms import (
+    OrderSearchForm,
+    PdfExportForm,
+    PermitSearchForm,
+    ProductSearchForm,
+    RefundSearchForm,
+)
 from .models import Customer, Order
 from .models.common import SourceSystem
 from .models.order import OrderStatus
@@ -234,21 +240,25 @@ class ParkingPermitsGDPRAPIView(GDPRAPIView):
 
 @require_ad_admin
 @require_safe
-def csv_export(request):
-    form = DataExportForm(request.GET)
+def csv_export(request, data_type):
+    form_class = {
+        "permits": PermitSearchForm,
+        "refunds": RefundSearchForm,
+        "orders": OrderSearchForm,
+        "products": ProductSearchForm,
+    }.get(data_type)
+    if not form_class:
+        raise Http404
+
+    form = form_class(request.GET)
     if not form.is_valid():
         return HttpResponseBadRequest()
 
-    filename = form.cleaned_data["data_type"]
     response = HttpResponse(
         content_type="text/csv",
-        headers={"Content-Disposition": f'attachment; filename="{filename}.csv"'},
+        headers={"Content-Disposition": f'attachment; filename="{data_type}.csv"'},
     )
-    data_exporter = DataExporter(
-        form.cleaned_data["data_type"],
-        form.cleaned_data["order_by"],
-        form.cleaned_data["search_items"],
-    )
+    data_exporter = DataExporter(data_type, form.get_queryset())
     writer = csv.writer(response)
     writer.writerow(data_exporter.get_headers())
     writer.writerows(data_exporter.get_rows())

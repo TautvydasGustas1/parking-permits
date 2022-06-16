@@ -5,7 +5,6 @@ from django.utils.translation import ugettext_lazy as _
 from fpdf import FPDF
 
 from parking_permits.models import Order, ParkingPermit, Product, Refund
-from parking_permits.utils import apply_filtering, apply_ordering
 
 DATETIME_FORMAT = "%-d.%-m.%Y, %H:%M"
 DATE_FORMAT = "%-d.%-m.%Y"
@@ -39,14 +38,26 @@ def _get_order_row(order):
     customer = order.customer
     permit_ids = order.order_items.values_list("permit")
     permits = ParkingPermit.objects.filter(id__in=permit_ids)
-    reg_numbers = ", ".join([permit.vehicle.registration_number for permit in permits])
     name = f"{customer.last_name}, {customer.first_name}"
+    if len(permits) > 0:
+        reg_numbers = ", ".join(
+            [permit.vehicle.registration_number for permit in permits]
+        )
+        zone = permits[0].parking_zone.name
+        address = str(permits[0].address)
+        permit_type = permits[0].get_type_display()
+    else:
+        reg_numbers = "-"
+        zone = "-"
+        address = "-"
+        permit_type = "-"
+
     return [
         name,
         reg_numbers,
-        permits[0].parking_zone.name,
-        str(permits[0].address),
-        permits[0].get_type_display(),
+        zone,
+        address,
+        permit_type,
         order.id,
         order.paid_time.strftime(DATETIME_FORMAT) if order.paid_time else "",
         order.total_price,
@@ -134,26 +145,16 @@ HEADERS_MAPPING = {
 
 
 class DataExporter:
-    def __init__(self, data_type, order_by=None, search_items=None):
+    def __init__(self, data_type, queryset):
         self.data_type = data_type
-        self.order_by = order_by
-        self.search_items = search_items
-
-    def get_queryset(self):
-        model_class = MODEL_MAPPING[self.data_type]
-        qs = model_class.objects.all()
-        if self.order_by:
-            qs = apply_ordering(qs, self.order_by)
-        if self.search_items:
-            qs = apply_filtering(qs, self.search_items)
-        return qs
+        self.queryset = queryset
 
     def get_headers(self):
         return HEADERS_MAPPING[self.data_type]
 
     def get_rows(self):
         row_getter = ROW_GETTER_MAPPING[self.data_type]
-        return [row_getter(item) for item in self.get_queryset()]
+        return [row_getter(item) for item in self.queryset]
 
 
 class BasePDF(FPDF, metaclass=abc.ABCMeta):
