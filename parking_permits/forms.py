@@ -147,7 +147,7 @@ class PermitSearchForm(SearchFormBase):
     def get_order_fields_mapping(self):
         return {
             "name": ["customer__first_name", "customer__last_name"],
-            "national_id_number": ["customer__national_id_number"],
+            "nationalIdNumber": ["customer__national_id_number"],
             "registrationNumber": ["vehicle__registration_number"],
             "primaryAddress": [
                 "customer__primary_address__street_name",
@@ -157,9 +157,9 @@ class PermitSearchForm(SearchFormBase):
                 "customer__other_address__street_name",
                 "customer__other_address__street_number",
             ],
-            "parking_zone": ["parking_zone__name"],
-            "start_time": ["start_time"],
-            "end_time": ["end_time"],
+            "parkingZone": ["parking_zone__name"],
+            "startTime": ["start_time"],
+            "endTime": ["end_time"],
             "status": ["status"],
         }
 
@@ -201,10 +201,10 @@ class RefundSearchForm(SearchFormBase):
             "id": ["id"],
             "name": ["name"],
             "orderId": ["order_id"],
-            "registration_number": ["order__permits__vehicle__registration_number"],
-            "account_number": ["iban"],
-            "created_at": ["created_at"],
-            "accepted_at": ["accepted_at"],
+            "registrationNumber": ["order__permits__vehicle__registration_number"],
+            "accountNumber": ["iban"],
+            "createdAt": ["created_at"],
+            "acceptedAt": ["accepted_at"],
             "status": ["status"],
             "amount": ["amount"],
         }
@@ -241,14 +241,14 @@ class OrderSearchForm(SearchFormBase):
         return {
             "name": ["customer__first_name", "customer__last_name"],
             "permits": ["permits__id"],
-            "parking_zone": ["permits__parking_zone__name"],
+            "parkingZone": ["permits__parking_zone__name"],
             "address": [
                 "permits__address__street_name",
                 "permits__address__street_number",
             ],
-            "permit_type": ["permits__type"],
+            "permitType": ["permits__type"],
             "id": ["id"],
-            "paid_time": ["paid_time"],
+            "paidTime": ["paid_time"],
         }
 
 
@@ -258,13 +258,13 @@ class ProductSearchForm(SearchFormBase):
 
     def get_order_fields_mapping(self):
         return {
-            "product_type": ["type"],
+            "productType": ["type"],
             "zone": ["zone__name"],
             "price": ["unit_price"],
             "vat": ["vat"],
-            "valid_period": ["start_date"],
-            "modified_at": ["modified_at"],
-            "modified_by": ["modified_by"],
+            "validPeriod": ["start_date"],
+            "modifiedAt": ["modified_at"],
+            "modifiedBy": ["modified_by"],
         }
 
 
@@ -274,11 +274,11 @@ class AddressSearchForm(SearchFormBase):
 
     def get_order_fields_mapping(self):
         return {
-            "street_name": ["street_name"],
-            "street_name_sv": ["street_name_sv"],
-            "street_number": ["street_number"],
-            "postal_code": ["postal_code"],
+            "streetName": ["street_name"],
+            "streetNameSv": ["street_name_sv"],
+            "streetNumber": ["street_number"],
+            "postalCode": ["postal_code"],
             "city": ["city"],
-            "city_sv": ["city_sv"],
+            "citySv": ["city_sv"],
             "zone": ["_zone__name"],
         }
