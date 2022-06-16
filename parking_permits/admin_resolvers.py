@@ -39,6 +39,7 @@ from .exceptions import (
     UpdatePermitError,
 )
 from .forms import (
+    AddressSearchForm,
     OrderSearchForm,
     PermitSearchForm,
     ProductSearchForm,
@@ -584,17 +585,16 @@ def resolve_orders(obj, info, page_input, order_by=None):
 @query.field("addresses")
 @is_ad_admin
 @convert_kwargs_to_snake_case
-def resolve_addresses(obj, info, page_input, order_by=None, search_items=None):
-    qs = Address.objects.all().order_by("street_name")
+def resolve_addresses(obj, info, page_input, order_by=None):
+    form_data = {**page_input}
     if order_by:
-        qs = apply_ordering(qs, order_by)
-    if search_items:
-        qs = apply_filtering(qs, search_items)
-    paginator = QuerySetPaginator(qs, page_input)
-    return {
-        "page_info": paginator.page_info,
-        "objects": paginator.object_list,
-    }
+        form_data.update(order_by)
+
+    form = AddressSearchForm(form_data)
+    if not form.is_valid():
+        logger.error(f"Address Search Error: {form.errors}")
+        raise SearchError("Address search error")
+    return form.get_paged_queryset()
 
 
 @query.field("address")

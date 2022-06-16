@@ -6,7 +6,7 @@ from django.db import models
 from django.db.models import Q
 from django.utils.translation import ugettext as _
 
-from parking_permits.models import Product
+from parking_permits.models import Address, Product
 from parking_permits.models.order import Order, OrderPaymentType
 from parking_permits.models.parking_permit import ParkingPermit, ParkingPermitStatus
 from parking_permits.models.refund import Refund, RefundStatus
@@ -265,4 +265,20 @@ class ProductSearchForm(SearchFormBase):
             "valid_period": ["start_date"],
             "modified_at": ["modified_at"],
             "modified_by": ["modified_by"],
+        }
+
+
+class AddressSearchForm(SearchFormBase):
+    def get_model_class(self):
+        return Address
+
+    def get_order_fields_mapping(self):
+        return {
+            "street_name": ["street_name"],
+            "street_name_sv": ["street_name_sv"],
+            "street_number": ["street_number"],
+            "postal_code": ["postal_code"],
+            "city": ["city"],
+            "city_sv": ["city_sv"],
+            "zone": ["_zone__name"],
         }
