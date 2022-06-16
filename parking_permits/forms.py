@@ -8,7 +8,7 @@ from django.utils.translation import ugettext as _
 
 from parking_permits.models.order import OrderPaymentType
 from parking_permits.models.parking_permit import ParkingPermit, ParkingPermitStatus
-from parking_permits.models.refund import RefundStatus
+from parking_permits.models.refund import Refund, RefundStatus
 from parking_permits.paginator import QuerySetPaginator
 from parking_permits.utils import convert_to_snake_case
 
@@ -181,7 +181,7 @@ class PermitSearchForm(SearchFormBase):
         return qs
 
 
-class RefundSearchForm(forms.Form):
+class RefundSearchForm(SearchFormBase):
     q = forms.CharField(required=False)
     status = forms.ChoiceField(
         choices=RefundStatus.choices + [("ALL", "All")], required=False
@@ -191,3 +191,42 @@ class RefundSearchForm(forms.Form):
     payment_types = SimpleArrayField(
         forms.ChoiceField(choices=OrderPaymentType.choices), required=False
     )
+
+    def get_model_class(self):
+        return Refund
+
+    def get_order_fields_mapping(self):
+        return {
+            "id": ["id"],
+            "name": ["name"],
+            "orderId": ["order_id"],
+            "registration_number": ["order__permits__vehicle__registration_number"],
+            "account_number": ["iban"],
+            "created_at": ["created_at"],
+            "accepted_at": ["accepted_at"],
+            "status": ["status"],
+            "amount": ["amount"],
+        }
+
+    def filter_queryset(self, qs):
+        q = self.cleaned_data.get("q")
+        start_date = self.cleaned_data.get("start_date")
+        end_date = self.cleaned_data.get("end_date")
+        status = self.cleaned_data.get("status")
+        payment_types = self.cleaned_data.get("payment_types")
+        if q:
+            text_filters = (
+                Q(name__icontains=q)
+                | Q(order__permits__vehicle__registration_number__icontains=q)
+                | Q(iban__icontains=q)
+            )
+            qs = qs.filter(text_filters)
+        if start_date:
+            qs = qs.filter(created_at__gte=start_date)
+        if end_date:
+            qs = qs.filter(created_at__lte=end_date)
+        if status and status != "ALL":
+            qs = qs.filter(status=status)
+        if payment_types:
+            qs = qs.filter(order__payment_type__in=payment_types)
+        return qs

@@ -12,7 +12,6 @@ from dateutil.parser import isoparse
 from django.conf import settings
 from django.contrib.gis.geos import Point
 from django.db import transaction
-from django.db.models import Q
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
@@ -495,40 +494,17 @@ def resolve_create_product(obj, info, product):
 @is_ad_admin
 @convert_kwargs_to_snake_case
 def resolve_refunds(obj, info, page_input, order_by=None, search_params=None):
-    qs = Refund.objects.all().order_by("-created_at")
+    form_data = {**page_input}
     if order_by:
-        qs = apply_ordering(qs, order_by)
+        form_data.update(order_by)
     if search_params:
-        form = RefundSearchForm(search_params)
-        if form.is_valid():
-            q = form.cleaned_data.get("q")
-            start_date = form.cleaned_data.get("start_date")
-            end_date = form.cleaned_data.get("end_date")
-            status = form.cleaned_data.get("status")
-            payment_types = form.cleaned_data.get("payment_types")
-            if q:
-                text_filters = (
-                    Q(name__icontains=q)
-                    | Q(order__permits__vehicle__registration_number__icontains=q)
-                    | Q(iban__icontains=q)
-                )
-                qs = qs.filter(text_filters)
-            if start_date:
-                qs = qs.filter(created_at__gte=start_date)
-            if end_date:
-                qs = qs.filter(created_at__lte=end_date)
-            if status and status != "ALL":
-                qs = qs.filter(status=status)
-            if payment_types:
-                qs = qs.filter(order__payment_type__in=payment_types)
-        else:
-            qs = Refund.objects.none()
+        form_data.update(search_params)
 
-    paginator = QuerySetPaginator(qs, page_input)
-    return {
-        "page_info": paginator.page_info,
-        "objects": paginator.object_list,
-    }
+    form = RefundSearchForm(form_data)
+    if not form.is_valid():
+        logger.error(f"Refund Search Error: {form.errors}")
+        raise SearchError("Search error")
+    return form.get_paged_queryset()
 
 
 @mutation.field("requestForApproval")
