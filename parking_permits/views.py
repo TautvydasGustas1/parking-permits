@@ -20,7 +20,13 @@ from rest_framework.views import APIView
 
 from .decorators import require_ad_admin
 from .exporters import DataExporter, PdfExporter
-from .forms import OrderSearchForm, PdfExportForm, PermitSearchForm, RefundSearchForm
+from .forms import (
+    OrderSearchForm,
+    PdfExportForm,
+    PermitSearchForm,
+    ProductSearchForm,
+    RefundSearchForm,
+)
 from .models import Customer, Order
 from .models.common import SourceSystem
 from .models.order import OrderStatus
@@ -235,6 +241,7 @@ def csv_export(request, data_type):
         "permits": PermitSearchForm,
         "refunds": RefundSearchForm,
         "orders": OrderSearchForm,
+        "products": ProductSearchForm,
     }.get(data_type)
     if not form_class:
         raise Http404

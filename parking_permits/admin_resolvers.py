@@ -38,7 +38,12 @@ from .exceptions import (
     SearchError,
     UpdatePermitError,
 )
-from .forms import OrderSearchForm, PermitSearchForm, RefundSearchForm
+from .forms import (
+    OrderSearchForm,
+    PermitSearchForm,
+    ProductSearchForm,
+    RefundSearchForm,
+)
 from .models.order import OrderStatus
 from .models.parking_permit import ContractType
 from .models.refund import RefundStatus
@@ -417,17 +422,16 @@ def resolve_end_permit(obj, info, permit_id, end_type, iban=None):
 @query.field("products")
 @is_ad_admin
 @convert_kwargs_to_snake_case
-def resolve_products(obj, info, page_input, order_by=None, search_items=None):
-    products = Product.objects.all().order_by("zone__name")
+def resolve_products(obj, info, page_input, order_by=None):
+    form_data = {**page_input}
     if order_by:
-        products = apply_ordering(products, order_by)
-    if search_items:
-        products = apply_filtering(products, search_items)
-    paginator = QuerySetPaginator(products, page_input)
-    return {
-        "page_info": paginator.page_info,
-        "objects": paginator.object_list,
-    }
+        form_data.update(order_by)
+
+    form = ProductSearchForm(form_data)
+    if not form.is_valid():
+        logger.error(f"Product Search Error: {form.errors}")
+        raise SearchError("Product search error")
+    return form.get_paged_queryset()
 
 
 @query.field("product")
