@@ -6,7 +6,7 @@ from django.db import models
 from django.db.models import Q
 from django.utils.translation import ugettext as _
 
-from parking_permits.models.order import OrderPaymentType
+from parking_permits.models.order import Order, OrderPaymentType
 from parking_permits.models.parking_permit import ParkingPermit, ParkingPermitStatus
 from parking_permits.models.refund import Refund, RefundStatus
 from parking_permits.paginator import QuerySetPaginator
@@ -230,3 +230,22 @@ class RefundSearchForm(SearchFormBase):
         if payment_types:
             qs = qs.filter(order__payment_type__in=payment_types)
         return qs
+
+
+class OrderSearchForm(SearchFormBase):
+    def get_model_class(self):
+        return Order
+
+    def get_order_fields_mapping(self):
+        return {
+            "name": ["customer__first_name", "customer__last_name"],
+            "permits": ["permits__id"],
+            "parking_zone": ["permits__parking_zone__name"],
+            "address": [
+                "permits__address__street_name",
+                "permits__address__street_number",
+            ],
+            "permit_type": ["permits__type"],
+            "id": ["id"],
+            "paid_time": ["paid_time"],
+        }

@@ -38,7 +38,7 @@ from .exceptions import (
     SearchError,
     UpdatePermitError,
 )
-from .forms import PermitSearchForm, RefundSearchForm
+from .forms import OrderSearchForm, PermitSearchForm, RefundSearchForm
 from .models.order import OrderStatus
 from .models.parking_permit import ContractType
 from .models.refund import RefundStatus
@@ -76,7 +76,7 @@ def resolve_permits(obj, info, page_input, order_by=None, search_params=None):
     form = PermitSearchForm(form_data)
     if not form.is_valid():
         logger.error(f"Permit Search Error: {form.errors}")
-        raise SearchError("Search error")
+        raise SearchError("Permit search error")
     return form.get_paged_queryset()
 
 
@@ -503,7 +503,7 @@ def resolve_refunds(obj, info, page_input, order_by=None, search_params=None):
     form = RefundSearchForm(form_data)
     if not form.is_valid():
         logger.error(f"Refund Search Error: {form.errors}")
-        raise SearchError("Search error")
+        raise SearchError("Refund search error")
     return form.get_paged_queryset()
 
 
@@ -565,17 +565,16 @@ def resolve_update_refund(obj, info, refund_id, refund):
 @query.field("orders")
 @is_ad_admin
 @convert_kwargs_to_snake_case
-def resolve_orders(obj, info, page_input, order_by=None, search_items=None):
-    orders = Order.objects.filter(status=OrderStatus.CONFIRMED)
+def resolve_orders(obj, info, page_input, order_by=None):
+    form_data = {**page_input}
     if order_by:
-        orders = apply_ordering(orders, order_by)
-    if search_items:
-        orders = apply_filtering(orders, search_items)
-    paginator = QuerySetPaginator(orders, page_input)
-    return {
-        "page_info": paginator.page_info,
-        "objects": paginator.object_list,
-    }
+        form_data.update(order_by)
+
+    form = OrderSearchForm(form_data)
+    if not form.is_valid():
+        logger.error(f"Order Search Error: {form.errors}")
+        raise SearchError("Order search error")
+    return form.get_paged_queryset()
 
 
 @query.field("addresses")
