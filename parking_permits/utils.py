@@ -1,40 +1,9 @@
 import calendar
-import operator
-from functools import reduce
 
 from ariadne import convert_camel_case_to_snake
 from dateutil.relativedelta import relativedelta
-from django.db.models import Q
 from django.utils import timezone
 from pytz import utc
-
-
-def apply_ordering(queryset, order_by):
-    fields = order_by["order_fields"]
-    direction = order_by["order_direction"]
-    if direction == "DESC":
-        fields = [f"-{field}" for field in fields]
-    return queryset.order_by(*fields)
-
-
-def apply_filtering(queryset, search_items):
-    query = Q()
-    connector_ops = {
-        "or": operator.or_,
-        "and": operator.and_,
-    }
-    for search_item in search_items:
-        connector = search_item["connector"]
-        fields = search_item["fields"]
-        value = search_item["value"]
-        connector_op = connector_ops[connector]
-        field_queries = []
-        for field in fields:
-            field_query = Q(**{f'{field["field_name"]}__{field["match_type"]}': value})
-            field_queries.append(field_query)
-        search_item_query = reduce(connector_op, field_queries)
-        query &= search_item_query
-    return queryset.filter(query)
 
 
 def diff_months_floor(start_date, end_date):
