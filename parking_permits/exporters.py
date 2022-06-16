@@ -38,14 +38,26 @@ def _get_order_row(order):
     customer = order.customer
     permit_ids = order.order_items.values_list("permit")
     permits = ParkingPermit.objects.filter(id__in=permit_ids)
-    reg_numbers = ", ".join([permit.vehicle.registration_number for permit in permits])
     name = f"{customer.last_name}, {customer.first_name}"
+    if len(permits) > 0:
+        reg_numbers = ", ".join(
+            [permit.vehicle.registration_number for permit in permits]
+        )
+        zone = permits[0].parking_zone.name
+        address = str(permits[0].address)
+        permit_type = permits[0].get_type_display()
+    else:
+        reg_numbers = "-"
+        zone = "-"
+        address = "-"
+        permit_type = "-"
+
     return [
         name,
         reg_numbers,
-        permits[0].parking_zone.name,
-        str(permits[0].address),
-        permits[0].get_type_display(),
+        zone,
+        address,
+        permit_type,
         order.id,
         order.paid_time.strftime(DATETIME_FORMAT) if order.paid_time else "",
         order.total_price,
