@@ -174,7 +174,7 @@ class ParkingPermit(SerializableMixin, TimestampedModelMixin):
         when, for example, the vehicle or the address of
         the permit is changed.
         """
-        return self.orders.latest("id")
+        return self.orders.latest("id") if self.orders.exists() else []
 
     @property
     def talpa_order_id(self):
