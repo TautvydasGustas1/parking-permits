@@ -49,6 +49,7 @@ env = environ.Env(
     EMAIL_PORT=(int, 25),
     EMAIL_TIMEOUT=(int, 15),
     DEFAULT_FROM_EMAIL=(str, "Pysäköintitunnukset <noreply_pysakointitunnus@hel.fi>"),
+    FIELD_ENCRYPTION_KEYS=(str, ""),
 )
 
 if path.exists(".env"):
@@ -86,6 +87,7 @@ INSTALLED_APPS = [
     "django_db_logger",
     "drf_yasg",
     "django_crontab",
+    "encrypted_fields",
 ]
 
 MIDDLEWARE = [
@@ -101,6 +103,8 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
+
+FIELD_ENCRYPTION_KEYS = [env("FIELD_ENCRYPTION_KEYS")]
 
 ROOT_URLCONF = "project.urls"
 
