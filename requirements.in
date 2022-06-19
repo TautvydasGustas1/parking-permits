@@ -18,3 +18,4 @@ drf-yasg
 django-crontab
 helsinki-profile-gdpr-api
 fpdf
+django-searchable-encrypted-fields
