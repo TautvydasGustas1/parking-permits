@@ -5,6 +5,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.gis.db import models
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
+from encrypted_fields import fields
 from helsinki_gdpr.models import SerializableMixin
 
 from ..services.traficom import Traficom
@@ -34,8 +35,8 @@ class Customer(SerializableMixin, TimestampedModelMixin):
     )
     first_name = models.CharField(_("First name"), max_length=32, blank=True)
     last_name = models.CharField(_("Last name"), max_length=32, blank=True)
-    national_id_number = models.CharField(
-        _("National identification number"), max_length=16, unique=True, blank=True
+    national_id_number = fields.EncryptedCharField(
+        _("National identification number"), max_length=50, blank=True
     )
     primary_address = models.ForeignKey(
         "Address",
