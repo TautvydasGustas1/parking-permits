@@ -30,7 +30,15 @@ def automatic_remove_obsolete_customer_data():
 
 
 def automatic_syncing_of_permits_to_parkkihubi():
-    permits = ParkingPermit.objects.filter(synced_with_parkkihubi=False)
+    statuses_to_sync = [
+        ParkingPermitStatus.CLOSED,
+        ParkingPermitStatus.VALID,
+        ParkingPermitStatus.ACCEPTED,
+        ParkingPermitStatus.REJECTED,
+    ]
+    permits = ParkingPermit.objects.filter(
+        synced_with_parkkihubi=False, status__in=statuses_to_sync
+    )
     for permit in permits:
         try:
             permit.update_parkkihubi_permit()
