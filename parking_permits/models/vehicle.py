@@ -1,8 +1,8 @@
 import arrow
 from django.contrib.gis.db import models
-from django.contrib.postgres.fields import ArrayField
 from django.utils import timezone as tz
 from django.utils.translation import gettext_lazy as _
+from encrypted_fields import fields
 
 from .mixins import TimestampedModelMixin
 
@@ -100,6 +100,20 @@ class LowEmissionCriteria(TimestampedModelMixin):
         )
 
 
+class VehicleUser(models.Model):
+    _national_id_number = fields.EncryptedCharField(max_length=50, blank=True)
+    national_id_number = fields.SearchField(
+        _("National identification number"), encrypted_field_name="_national_id_number"
+    )
+
+    class Meta:
+        verbose_name = _("Vehicle user")
+        verbose_name_plural = _("Vehicle users")
+
+    def __str__(self):
+        return self.national_id_number
+
+
 class Vehicle(TimestampedModelMixin):
     power_type = models.CharField(
         _("Power type"), max_length=50, choices=VehiclePowerType.choices, blank=True
@@ -130,7 +144,7 @@ class Vehicle(TimestampedModelMixin):
     updated_from_traficom_on = models.DateField(
         _("Update from traficom on"), default=tz.now
     )
-    users = ArrayField(models.CharField(max_length=15), default=list)
+    users = models.ManyToManyField(VehicleUser)
 
     class Meta:
         verbose_name = _("Vehicle")
