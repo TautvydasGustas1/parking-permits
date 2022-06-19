@@ -33,6 +33,7 @@ from .exceptions import (
     CreatePermitError,
     ObjectNotFound,
     ParkingZoneError,
+    ParkkihubiPermitError,
     PermitLimitExceeded,
     RefundError,
     SearchError,
@@ -262,6 +263,10 @@ def resolve_create_resident_permit(obj, info, permit):
     # when creating from Admin UI, it's considered the payment is completed
     # and the order status should be confirmed
     Order.objects.create_for_permits([parking_permit], status=OrderStatus.CONFIRMED)
+    try:
+        permit.update_parkkihubi_permit()
+    except ParkkihubiPermitError:
+        permit.create_parkkihubi_permit()
     send_permit_email(PermitEmailType.CREATED, parking_permit)
     return {"success": True, "permit": parking_permit}
 
@@ -382,6 +387,7 @@ def resolve_update_resident_permit(obj, info, permit_id, permit_info, iban=None)
 
     # get updated permit info
     permit = ParkingPermit.objects.get(id=permit_id)
+    permit.update_parkkihubi_permit()
     send_permit_email(PermitEmailType.UPDATED, permit)
     return {"success": True}
 
@@ -417,6 +423,7 @@ def resolve_end_permit(obj, info, permit_id, end_type, iban=None):
 
     # get updated permit info
     permit = ParkingPermit.objects.get(id=permit_id)
+    permit.update_parkkihubi_permit()
     send_permit_email(PermitEmailType.ENDED, permit)
     return {"success": True}
 
