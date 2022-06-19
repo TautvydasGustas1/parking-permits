@@ -108,7 +108,8 @@ class Customer(SerializableMixin, TimestampedModelMixin):
         return Traficom().fetch_vehicle_details(registration_number)
 
     def is_user_of_vehicle(self, vehicle):
-        return self.national_id_number in vehicle.users
+        users_nin = [user._national_id_number for user in vehicle.users.all()]
+        return self.national_id_number in users_nin
 
     def fetch_driving_licence_detail(self):
         licence_details = Traficom().fetch_driving_licence_details(

@@ -137,7 +137,8 @@ def resolve_customer(obj, info, national_id_number):
 @convert_kwargs_to_snake_case
 def resolve_vehicle(obj, info, reg_number, national_id_number):
     vehicle = Traficom().fetch_vehicle_details(reg_number)
-    if vehicle and national_id_number in vehicle.users:
+    users_nin = [user._national_id_number for user in vehicle.users.all()]
+    if vehicle and national_id_number in users_nin:
         return vehicle
     else:
         raise ObjectNotFound(_("Vehicle not found for the customer"))
