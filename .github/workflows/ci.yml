@@ -13,6 +13,7 @@ jobs:
       DEBUG: True
       DATABASE_URL: postgis://postgres:postgres@localhost/parking-permits
       DJANGO_SECRET_KEY: test-secret
+      DJANGO_SETTINGS_MODULE: project.settings_test
     steps:
     - uses: actions/checkout@v2
     - name: Set up Python 3.10
