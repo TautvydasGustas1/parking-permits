@@ -34,8 +34,8 @@ class DataExporterTestCase(TestCase):
         self.assertEqual(exporter.get_headers(), PERMIT_HEADERS)
         rows = exporter.get_rows()
         self.assertEqual(len(rows), 2)
-        self.assertEqual(rows[0][1], "20000102-EFG")
-        self.assertEqual(rows[1][1], "20000101-ABC")
+        for row in rows:
+            assert row[1] in ["20000101-ABC", "20000102-EFG"]
 
     def test_export_orders(self):
         order_1 = OrderFactory(customer=self.customer_a)
