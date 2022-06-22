@@ -166,10 +166,10 @@ msgid "Order info"
 msgstr "Tilauksen tiedot"
 
 msgid "Primary permit"
-msgstr "Ensisijainen tunnus"
+msgstr "1. tunnus"
 
 msgid "Secondary permit"
-msgstr "Toissijainen tunnus"
+msgstr "2. tunnus"
 
 msgid "Invalid order by"
 msgstr "Virheellinen tunnuksen järjestys"
