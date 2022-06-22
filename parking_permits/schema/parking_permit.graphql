@@ -57,6 +57,7 @@ type PermitNode {
   id: ID!
   zone: ID!
   talpaOrderId: String
+  receiptUrl: String
   subscriptionId: String
   vehicle: VehicleNode!
   products: [ProductNode]
