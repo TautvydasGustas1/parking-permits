@@ -84,3 +84,7 @@ class DVVIntegrationError(ParkingPermitBaseException):
 
 class SearchError(ParkingPermitBaseException):
     pass
+
+
+class LocationDoesNotExist(ParkingPermitBaseException):
+    pass
