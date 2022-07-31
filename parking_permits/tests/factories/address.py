@@ -1,5 +1,4 @@
 import factory
-from django.contrib.gis.geos import Point
 
 from parking_permits.models import Address
 
@@ -13,8 +12,8 @@ class AddressFactory(factory.django.DjangoModelFactory):
     city = factory.Faker("city", locale="fi")
     city_sv = factory.Faker("city", locale="sv")
     postal_code = factory.Faker("postcode")
-    location = Point(10000, 10000)
     _zone = factory.SubFactory(ParkingZoneFactory)
+    location = factory.SelfAttribute('_zone.location.centroid')
 
     class Meta:
         model = Address
