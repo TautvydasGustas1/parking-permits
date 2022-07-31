@@ -147,15 +147,13 @@ def resolve_vehicle(obj, info, reg_number, national_id_number):
 
 def create_address(address_info):
     location = Point(*address_info["location"], srid=settings.SRID)
-    return Address.objects.create(
+    address_obj = Address.objects.update_or_create(
         street_name=address_info["street_name"],
-        street_name_sv=address_info["street_name_sv"],
         street_number=address_info["street_number"],
         city=address_info["city"],
-        city_sv=address_info["city_sv"],
         postal_code=address_info["postal_code"],
-        location=location,
-    )
+        defaults=address_info)
+    return address_obj[0]
 
 
 def update_or_create_customer(customer_info):
@@ -618,10 +616,6 @@ def resolve_address(obj, info, address_id):
 @transaction.atomic
 def resolve_update_address(obj, info, address_id, address):
     location = Point(*address["location"], srid=settings.SRID)
-    try:
-        zone = ParkingZone.objects.get_for_location(location)
-    except ParkingZone.DoesNotExist:
-        raise AddressError(_("Cannot find parking zone for the address location"))
     _address = Address.objects.get(id=address_id)
     _address.street_name = address["street_name"]
     _address.street_name_sv = address["street_name_sv"]
@@ -630,7 +624,6 @@ def resolve_update_address(obj, info, address_id, address):
     _address.city = address["city"]
     _address.city_sv = address["city_sv"]
     _address.location = location
-    _address._zone = zone
     _address.save()
     return {"success": True}
 
@@ -651,10 +644,6 @@ def resolve_delete_address(obj, info, address_id):
 @transaction.atomic
 def resolve_create_address(obj, info, address):
     location = Point(*address["location"], srid=settings.SRID)
-    try:
-        zone = ParkingZone.objects.get_for_location(location)
-    except ParkingZone.DoesNotExist:
-        raise AddressError(_("Cannot find parking zone for the address location"))
     Address.objects.create(
         street_name=address["street_name"],
         street_name_sv=address["street_name_sv"],
@@ -663,7 +652,6 @@ def resolve_create_address(obj, info, address):
         city=address["city"],
         city_sv=address["city_sv"],
         location=location,
-        _zone=zone,
     )
     return {"success": True}
 
