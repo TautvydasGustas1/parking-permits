@@ -68,8 +68,13 @@ def save_profile_address(address):
     street_number = address.get("street_number")
     address_detail = get_address_detail_from_kmo(street_name, street_number)
     address.update(address_detail)
-    address_obj = Address.objects.create(**address)
-    return address_obj
+    address_obj = Address.objects.update_or_create(
+        street_name=street_name,
+        street_number=street_number,
+        city=address['city'],
+        postal_code=address['postal_code'],
+        defaults=address)
+    return address_obj[0]
 
 
 @query.field("profile")
