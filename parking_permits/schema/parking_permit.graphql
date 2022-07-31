@@ -9,7 +9,7 @@ type ZoneNode  {
 type AddressNode  {
   id: ID!
   streetName: String
-  streetNumber: Int
+  streetNumber: String
   streetNameSv: String
   city: String
   citySv: String
