@@ -29,7 +29,6 @@ from parking_permits.models import (
 
 from .decorators import is_ad_admin
 from .exceptions import (
-    AddressError,
     CreatePermitError,
     ObjectNotFound,
     ParkingZoneError,
@@ -146,13 +145,13 @@ def resolve_vehicle(obj, info, reg_number, national_id_number):
 
 
 def create_address(address_info):
-    location = Point(*address_info["location"], srid=settings.SRID)
     address_obj = Address.objects.update_or_create(
         street_name=address_info["street_name"],
         street_number=address_info["street_number"],
         city=address_info["city"],
         postal_code=address_info["postal_code"],
-        defaults=address_info)
+        defaults=address_info,
+    )
     return address_obj[0]
 
 

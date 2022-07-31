@@ -13,7 +13,7 @@ class AddressFactory(factory.django.DjangoModelFactory):
     city_sv = factory.Faker("city", locale="sv")
     postal_code = factory.Faker("postcode")
     _zone = factory.SubFactory(ParkingZoneFactory)
-    location = factory.SelfAttribute('_zone.location.centroid')
+    location = factory.SelfAttribute("_zone.location.centroid")
 
     class Meta:
         model = Address

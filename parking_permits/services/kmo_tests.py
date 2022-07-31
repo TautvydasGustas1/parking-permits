@@ -6,12 +6,12 @@ from parking_permits.services.kmo import parse_street_name_and_number
 @pytest.mark.parametrize(
     "street_address, street_name, street_number",
     [
-        ("", None, None),
-        ("Mannerheimintie", "Mannerheimintie", None),
-        ("Mannerheimintie 2", "Mannerheimintie", 2),
-        ("Mannerheimintie 4-5", "Mannerheimintie", 4),
-        ("Mannerheimintie 21-24", "Mannerheimintie", 21),
-        ("Mannerheimintie 30,32", "Mannerheimintie", 30),
+        ("", "", ""),
+        ("Mannerheimintie", "Mannerheimintie", ""),
+        ("Mannerheimintie 2", "Mannerheimintie", "2"),
+        ("Mannerheimintie 4-5", "Mannerheimintie", "4-5"),
+        ("Mannerheimintie 2 A 7", "Mannerheimintie", "2 A 7"),
+        ("Mannerheimintie 30,32", "Mannerheimintie", "30,32"),
     ],
 )
 def test_parse_street_name_and_number_function_returns_correct_result(

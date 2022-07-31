@@ -7,7 +7,11 @@ from django.contrib.gis.geos import GEOSGeometry
 from rest_framework import status
 
 
-def get_wfs_result(street_name="", street_number=0):
+def get_wfs_result(street_name="", street_number_token=""):
+    street_number_first_part = re.search(r"^\d+", street_number_token)
+    street_number = (
+        int(street_number_first_part.group()) if street_number_first_part else 0
+    )
     street_address = f"katunimi=''{street_name}'' AND osoitenumero=''{street_number}''"
     query_single_args = [
         "'avoindata:Helsinki_osoiteluettelo'",
@@ -59,15 +63,12 @@ def get_wfs_result(street_name="", street_number=0):
 def parse_street_name_and_number(street_address):
     tokens = street_address.split()
 
-    street_name = tokens[0] if len(tokens) >= 1 else None
-    street_number_token = tokens[1] if len(tokens) >= 2 else ""
+    street_name = tokens[0] if len(tokens) >= 1 else ""
 
-    street_number_first_part = re.search(r"^\d+", street_number_token)
-    street_number = (
-        int(street_number_first_part.group()) if street_number_first_part else None
+    return dict(
+        street_name=street_name,
+        street_number=" ".join(tokens[1:]) if len(tokens) else "",
     )
-
-    return dict(street_name=street_name, street_number=street_number)
 
 
 def get_address_detail_from_kmo(street_name, street_number):

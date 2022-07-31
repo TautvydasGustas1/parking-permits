@@ -71,9 +71,10 @@ def save_profile_address(address):
     address_obj = Address.objects.update_or_create(
         street_name=street_name,
         street_number=street_number,
-        city=address['city'],
-        postal_code=address['postal_code'],
-        defaults=address)
+        city=address["city"],
+        postal_code=address["postal_code"],
+        defaults=address,
+    )
     return address_obj[0]
 
 
