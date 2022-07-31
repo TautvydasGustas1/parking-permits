@@ -7,6 +7,7 @@ from helsinki_gdpr.models import SerializableMixin
 
 from .mixins import TimestampedModelMixin
 from .parking_zone import ParkingZone
+from ..exceptions import LocationDoesNotExist
 
 logger = logging.getLogger("db")
 
@@ -50,11 +51,11 @@ class Address(SerializableMixin, TimestampedModelMixin):
 
     @property
     def zone(self):
-        """Lazy loading property for get the zone of the address"""
-        if not self._zone and self.location:
-            try:
-                self._zone = ParkingZone.objects.get_for_location(self.location)
-                self.save()
-            except ParkingZone.DoesNotExist:
-                logger.warning(f"Cannot find parking zone for the address {self}")
-        return self._zone
+        if not self.location:
+            raise LocationDoesNotExist('Location is not set')
+        try:
+            self._zone = ParkingZone.objects.get_for_location(self.location)
+            self.save()
+            return self._zone
+        except ParkingZone.DoesNotExist:
+            logger.warning(f"Cannot find parking zone for the address {self}")
