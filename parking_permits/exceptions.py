@@ -88,3 +88,7 @@ class SearchError(ParkingPermitBaseException):
 
 class LocationDoesNotExist(ParkingPermitBaseException):
     pass
+
+
+class TemporaryVehicleValidationError(ParkingPermitBaseException):
+    pass
