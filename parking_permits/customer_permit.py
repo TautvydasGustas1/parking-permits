@@ -14,9 +14,19 @@ from .exceptions import (
     NonDraftPermitUpdateError,
     PermitCanNotBeDelete,
     PermitLimitExceeded,
+    TemporaryVehicleValidationError,
     TraficomFetchVehicleError,
 )
-from .models import Address, Customer, Order, OrderItem, ParkingPermit, Refund, Vehicle
+from .models import (
+    Address,
+    Customer,
+    Order,
+    OrderItem,
+    ParkingPermit,
+    Refund,
+    TemporaryVehicle,
+    Vehicle,
+)
 from .models.order import OrderStatus
 from .models.parking_permit import (
     ContractType,
@@ -60,6 +70,41 @@ class CustomerPermit:
             customer=self.customer, status__in=[VALID, PAYMENT_IN_PROGRESS, DRAFT]
         )
 
+    def add_temporary_vehicle(self, permit_id, registration, start_time, end_time):
+        has_valid_permit = self.customer_permit_query.filter(
+            vehicle__registration_number=registration
+        ).exists()
+
+        if has_valid_permit:
+            raise TemporaryVehicleValidationError(
+                "You already have a valid permit for a given vehicle."
+            )
+
+        permit, _ = self._get_permit(permit_id)
+        tmp_vehicles = permit.temp_vehicles.filter(
+            start_time__gte=get_end_time(tz.now(), -12)
+        ).order_by("-start_time")[:2]
+
+        if tmp_vehicles.count() == 2:
+            raise TemporaryVehicleValidationError(
+                "Can not have more than 2 temporary vehicles in 365 days from first one."
+            )
+
+        vehicle = TemporaryVehicle.objects.create(
+            vehicle=Vehicle.objects.get(registration_number=registration),
+            end_time=end_time,
+            start_time=start_time,
+        )
+        permit.temp_vehicles.add(vehicle)
+        permit.update_parkkihubi_permit()
+        return True
+
+    def remove_temporary_vehicle(self, permit_id):
+        permit, _ = self._get_permit(permit_id)
+        permit.temp_vehicles.filter(is_active=True).update(is_active=False)
+        permit.update_parkkihubi_permit()
+        return True
+
     def get(self):
         permits = []
         # Delete all the draft permits if it wasn't created today
@@ -68,6 +113,7 @@ class CustomerPermit:
         ).delete()
 
         for permit in self.customer_permit_query.order_by("start_time"):
+            permit.temp_vehicles.filter(end_time__lt=tz.now()).update(is_active=False)
             vehicle = permit.vehicle
             # Update vehicle detail from traficom if it wasn't updated today
             if permit.vehicle.updated_from_traficom_on < tz.localdate(tz.now()):
