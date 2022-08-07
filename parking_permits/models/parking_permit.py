@@ -22,6 +22,7 @@ from ..exceptions import (
 from ..utils import diff_months_ceil, get_end_time, get_permit_prices
 from .mixins import TimestampedModelMixin
 from .parking_zone import ParkingZone
+from .temporary_vehicle import TemporaryVehicle
 from .vehicle import Vehicle
 
 logger = logging.getLogger("db")
@@ -88,6 +89,7 @@ class ParkingPermit(SerializableMixin, TimestampedModelMixin):
         verbose_name=_("Vehicle"),
         on_delete=models.PROTECT,
     )
+    temp_vehicles = models.ManyToManyField(TemporaryVehicle, blank=True)
     parking_zone = models.ForeignKey(
         ParkingZone,
         verbose_name=_("Parking zone"),
@@ -161,6 +163,10 @@ class ParkingPermit(SerializableMixin, TimestampedModelMixin):
     @property
     def is_secondary_vehicle(self):
         return not self.primary_vehicle
+
+    @property
+    def temporary_vehicles(self):
+        return self.temp_vehicles.all()
 
     @property
     def consent_low_emission_accepted(self):
@@ -518,24 +524,55 @@ class ParkingPermit(SerializableMixin, TimestampedModelMixin):
         }
 
     def _get_parkkihubi_data(self):
+        subjects = []
         start_time = str(self.start_time)
         end_time = (
             str(get_end_time(self.start_time, 30))
             if not self.end_time
             else str(self.end_time)
         )
+        registration_number = self.vehicle.registration_number
+
+        active_temporary_vehicle = self.temporary_vehicles.filter(
+            is_active=True
+        ).first()
+        if active_temporary_vehicle:
+            subjects.append(
+                {
+                    "start_time": str(start_time),
+                    "end_time": str(self.temporary.start_time),
+                    "registration_number": registration_number,
+                }
+            )
+            subjects.append(
+                {
+                    "start_time": str(self.temporary.start_time),
+                    "end_time": str(self.temporary.end_time),
+                    "registration_number": self.temporary.vehicle.registration_number,
+                }
+            )
+            subjects.append(
+                {
+                    "start_time": str(self.temporary.end_time),
+                    "end_time": str(end_time),
+                    "registration_number": registration_number,
+                }
+            )
+        else:
+            subjects.append(
+                {
+                    "start_time": str(start_time),
+                    "end_time": str(end_time),
+                    "registration_number": registration_number,
+                }
+            )
+
         return {
             "series": settings.PARKKIHUBI_PERMIT_SERIES,
             "domain": settings.PARKKIHUBI_DOMAIN,
             "external_id": str(self.id),
             "properties": {"permit_type": self.type},
-            "subjects": [
-                {
-                    "start_time": start_time,
-                    "end_time": end_time,
-                    "registration_number": self.vehicle.registration_number,
-                }
-            ],
+            "subjects": subjects,
             "areas": [
                 {
                     "start_time": start_time,

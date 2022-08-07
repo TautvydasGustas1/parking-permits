@@ -14,6 +14,7 @@ from parking_permits.models import (
     Price,
     Product,
     Refund,
+    TemporaryVehicle,
     Vehicle,
 )
 
@@ -164,3 +165,13 @@ class OrderItemAdmin(admin.ModelAdmin):
     )
     list_select_related = ("order", "product", "permit")
     readonly_fields = ("talpa_order_item_id",)
+
+
+@admin.register(TemporaryVehicle)
+class TemporaryVehicleAdmin(admin.ModelAdmin):
+    list_display = (
+        "vehicle",
+        "start_time",
+        "end_time",
+        "is_active",
+    )

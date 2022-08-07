@@ -9,6 +9,7 @@ from .parking_zone import ParkingZone
 from .price import Price
 from .product import Product
 from .refund import Refund
+from .temporary_vehicle import TemporaryVehicle
 from .vehicle import LowEmissionCriteria, Vehicle
 
 __all__ = [
@@ -26,4 +27,5 @@ __all__ = [
     "Product",
     "Order",
     "OrderItem",
+    "TemporaryVehicle",
 ]
