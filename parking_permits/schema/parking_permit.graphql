@@ -53,6 +53,14 @@ type ProductNode {
   lowEmissionDiscount: Float!
 }
 
+type TemporaryVehicleNode {
+  id: ID!
+  vehicle: VehicleNode!
+  startTime: String!
+  endTime: String!
+  isActive: Boolean!
+}
+
 type PermitNode {
   id: ID!
   zone: ID!
@@ -60,6 +68,7 @@ type PermitNode {
   receiptUrl: String
   subscriptionId: String
   vehicle: VehicleNode!
+  temporaryVehicles: [TemporaryVehicleNode]
   products: [ProductNode]
   contractType: String
   monthCount: Int
@@ -129,6 +138,8 @@ type Mutation {
   getVehicleInformation(registration: String!): VehicleNode!
   updatePermitVehicle(permitId: ID!, vehicleId: ID!, iban: String): ChangeVehicleResult!
   updateLanguage(lang: String!): CustomerNode!
+  addTemporaryVehicle(permitId: String!, registration: String!, startTime: String!, endTime: String!): Boolean!
+  removeTemporaryVehicle(permitId: String!): Boolean!
 }
 
 input ParkingPermitInput {

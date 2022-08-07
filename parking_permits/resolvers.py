@@ -277,6 +277,34 @@ def resolve_create_order(_, info):
     return {"checkout_url": TalpaOrderManager.send_to_talpa(order)}
 
 
+@mutation.field("addTemporaryVehicle")
+@is_authenticated
+@convert_kwargs_to_snake_case
+def resolve_add_temporary_vehicle(
+    _, info, permit_id, registration, start_time, end_time
+):
+    request = info.context["request"]
+    customer = request.user.customer
+    vehicle = Traficom().fetch_vehicle_details(registration_number=registration)
+    has_valid_licence = customer.has_valid_driving_licence_for_vehicle(vehicle)
+    if not has_valid_licence:
+        raise TraficomFetchVehicleError(
+            "Customer does not have a valid driving licence for this vehicle"
+        )
+    CustomerPermit(request.user.customer.id).add_temporary_vehicle(
+        permit_id, registration, start_time, end_time
+    )
+    return True
+
+
+@mutation.field("removeTemporaryVehicle")
+@is_authenticated
+@convert_kwargs_to_snake_case
+def resolve_remove_temporary_vehicle(_, info, permit_id):
+    request = info.context["request"]
+    return CustomerPermit(request.user.customer.id).remove_temporary_vehicle(permit_id)
+
+
 @mutation.field("changeAddress")
 @is_authenticated
 @convert_kwargs_to_snake_case
