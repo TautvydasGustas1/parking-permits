@@ -68,7 +68,7 @@ type PermitNode {
   receiptUrl: String
   subscriptionId: String
   vehicle: VehicleNode!
-  temporaryVehicles: [TemporaryVehicleNode]
+  activeTemporaryVehicle: TemporaryVehicleNode
   products: [ProductNode]
   contractType: String
   monthCount: Int

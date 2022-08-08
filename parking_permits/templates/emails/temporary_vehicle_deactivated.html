@@ -1,0 +1,19 @@
+{% extends "emails/base.html" %}
+
+{% block title %}Pysäköintitunnuksen tiedot on päivitetty{% endblock %}
+
+{% block content %}
+    <p>
+        Pysäköintitunnus on sähköinen ja pysäköintivalvonta tunnistaa voimassa olevan tunnuksen ajoneuvosi rekisterinumeron perusteella.
+    </p>
+    <p>
+        Tilauksen tiedot: <br>
+        {{ permit.get_type_display }} <br>
+        {{ permit.customer }} <br>
+        Osoite: {{ permit.address }} <br>
+        Alue: {{ permit.parking_zone.name }} <br>
+        Ajoneuvo: {{ permit.vehicle }}<br>
+        {{ permit.get_contract_type_display }} <br>
+        Voimassaoloaika: {{ permit.active_temporary_vehicle.end_time|date:"j.n.Y, H:i" }} – {{ permit.end_time|date:"j.n.Y, H:i" }}
+    </p>
+{% endblock %}

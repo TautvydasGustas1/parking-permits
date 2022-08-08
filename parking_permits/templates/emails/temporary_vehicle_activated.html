@@ -1,0 +1,20 @@
+{% extends "emails/base.html" %}
+
+{% block title %}Tilapäinen ajoneuvo liitetty tunnukseen{% endblock %}
+
+{% block content %}
+    <p>Pysäköintitunnukseen on päivitetty tilapäisen ajoneuvon tiedot.</p>
+
+    <p>
+        Tilauksen tiedot: <br>
+        {{ permit.get_type_display }} <br>
+        {{ permit.customer }} <br>
+        Osoite: {{ permit.address }} <br>
+        Alue: {{ permit.parking_zone.name }} <br>
+        Ajoneuvo: {{ permit.active_temporary_vehicle.vehicle }}<br>
+        {{ permit.get_contract_type_display }} <br>
+        Voimassaoloaika: {{ permit.active_temporary_vehicle.start_time|date:"j.n.Y, H:i" }} – {{ permit.active_temporary_vehicle.end_time|date:"j.n.Y, H:i" }}
+    </p>
+
+    <p>Pysäköintitunnus on sähköinen ja pysäköintivalvonta tunnistaa voimassaolevan tunnuksen ajoneuvosi rekisterinumeron perusteella.</p>
+{% endblock %}

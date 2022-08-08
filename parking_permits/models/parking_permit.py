@@ -169,6 +169,10 @@ class ParkingPermit(SerializableMixin, TimestampedModelMixin):
         return self.temp_vehicles.all()
 
     @property
+    def active_temporary_vehicle(self):
+        return self.temporary_vehicles.filter(is_active=True).first()
+
+    @property
     def consent_low_emission_accepted(self):
         return self.vehicle.consent_low_emission_accepted
 
@@ -533,27 +537,25 @@ class ParkingPermit(SerializableMixin, TimestampedModelMixin):
         )
         registration_number = self.vehicle.registration_number
 
-        active_temporary_vehicle = self.temporary_vehicles.filter(
-            is_active=True
-        ).first()
+        active_temporary_vehicle = self.active_temporary_vehicle
         if active_temporary_vehicle:
             subjects.append(
                 {
                     "start_time": str(start_time),
-                    "end_time": str(self.temporary.start_time),
+                    "end_time": str(self.active_temporary_vehicle.start_time),
                     "registration_number": registration_number,
                 }
             )
             subjects.append(
                 {
-                    "start_time": str(self.temporary.start_time),
-                    "end_time": str(self.temporary.end_time),
-                    "registration_number": self.temporary.vehicle.registration_number,
+                    "start_time": str(self.active_temporary_vehicle.start_time),
+                    "end_time": str(self.active_temporary_vehicle.end_time),
+                    "registration_number": self.active_temporary_vehicle.vehicle.registration_number,
                 }
             )
             subjects.append(
                 {
-                    "start_time": str(self.temporary.end_time),
+                    "start_time": str(self.active_temporary_vehicle.end_time),
                     "end_time": str(end_time),
                     "registration_number": registration_number,
                 }

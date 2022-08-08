@@ -8,18 +8,24 @@ class PermitEmailType:
     CREATED = "created"
     UPDATED = "updated"
     ENDED = "ended"
+    TEMP_VEHICLE_ACTIVATED = "temp_vehicle_activated"
+    TEMP_VEHICLE_DEACTIVATED = "temp_vehicle_deactivated"
 
 
 permit_email_subjects = {
     PermitEmailType.CREATED: "Pysäköintitunnukset: Sinulle on luotu pysäköintitunnus",
     PermitEmailType.UPDATED: "Pysäköintitunnukset: Tiedot päivitetty",
     PermitEmailType.ENDED: "Pysäköintitunnukset: Tilauksesi on päättynyt",
+    PermitEmailType.TEMP_VEHICLE_ACTIVATED: "Pysäköintitunnukset: Tilapäinen ajoneuvo liitetty tunnukseen",
+    PermitEmailType.TEMP_VEHICLE_DEACTIVATED: "Pysäköintitunnukset: Pysäköintitunnuksen voimassaolo päättyy pian",
 }
 
 permit_email_templates = {
     PermitEmailType.CREATED: "emails/permit_created.html",
     PermitEmailType.UPDATED: "emails/permit_updated.html",
     PermitEmailType.ENDED: "emails/permit_ended.html",
+    PermitEmailType.TEMP_VEHICLE_ACTIVATED: "emails/temporary_vehicle_activated.html",
+    PermitEmailType.TEMP_VEHICLE_DEACTIVATED: "emails/temporary_vehicle_deactivated.html",
 }
 
 

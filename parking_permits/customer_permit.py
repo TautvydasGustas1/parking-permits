@@ -97,12 +97,14 @@ class CustomerPermit:
         )
         permit.temp_vehicles.add(vehicle)
         permit.update_parkkihubi_permit()
+        send_permit_email(PermitEmailType.TEMP_VEHICLE_ACTIVATED, permit)
         return True
 
     def remove_temporary_vehicle(self, permit_id):
         permit, _ = self._get_permit(permit_id)
         permit.temp_vehicles.filter(is_active=True).update(is_active=False)
         permit.update_parkkihubi_permit()
+        send_permit_email(PermitEmailType.TEMP_VEHICLE_DEACTIVATED, permit)
         return True
 
     def get(self):
@@ -113,7 +115,9 @@ class CustomerPermit:
         ).delete()
 
         for permit in self.customer_permit_query.order_by("start_time"):
-            permit.temp_vehicles.filter(end_time__lt=tz.now()).update(is_active=False)
+            permit.temporary_vehicles.filter(end_time__lt=tz.now()).update(
+                is_active=False
+            )
             vehicle = permit.vehicle
             # Update vehicle detail from traficom if it wasn't updated today
             if permit.vehicle.updated_from_traficom_on < tz.localdate(tz.now()):
