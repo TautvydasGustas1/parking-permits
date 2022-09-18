@@ -1,6 +1,7 @@
 from datetime import datetime
 
 from dateutil.relativedelta import relativedelta
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.gis.db import models
 from django.utils import timezone
@@ -108,6 +109,8 @@ class Customer(SerializableMixin, TimestampedModelMixin):
         return Traficom().fetch_vehicle_details(registration_number)
 
     def is_user_of_vehicle(self, vehicle):
+        if not settings.TRAFICOM_CHECK:
+            return True
         users_nin = [user._national_id_number for user in vehicle.users.all()]
         return self.national_id_number in users_nin
 
@@ -126,6 +129,8 @@ class Customer(SerializableMixin, TimestampedModelMixin):
         return driving_licence
 
     def has_valid_driving_licence_for_vehicle(self, vehicle):
+        if not settings.TRAFICOM_CHECK:
+            return True
         return any(
             vehicle.vehicle_class in d_class.vehicle_classes
             for d_class in self.driving_licence.driving_classes.all()
