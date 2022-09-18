@@ -106,7 +106,12 @@ class Traficom:
         vehicle_manufacturer = vehicle_detail.find("merkkiSelvakielinen")
         vehicle_model = vehicle_detail.find("mallimerkinta")
         vehicle_serial_number = vehicle_identity.find("valmistenumero")
-        user_ssns = [owner_et.find("omistajanTunnus").text for owner_et in owners_et]
+        user_ssns = [
+            owner_et.find("omistajanTunnus").text
+            if owner_et.find("omistajanTunnus")
+            else ""
+            for owner_et in owners_et
+        ]
         vehicle_details = {
             "updated_from_traficom_on": str(tz.now().date()),
             "power_type": POWER_TYPE_MAPPER.get(vehicle_power_type.text),
