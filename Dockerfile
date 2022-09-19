@@ -20,7 +20,7 @@ COPY ./etc-pki-entitlement /etc/pki/entitlement
 
 RUN if [ "x$BUILD_MODE" = "xlocal" ] ;\
     then \
-        subscription-manager register --username $LOCAL_REDHAT_USERNAME --password $LOCAL_REDHAT_PASSWORD --auto-attach; \
+        subscription-manager register --force --username $LOCAL_REDHAT_USERNAME --password $LOCAL_REDHAT_PASSWORD --auto-attach; \
     else \
         # subscription-manager register --username ${REDHAT_USERNAME} --password ${REDHAT_PASSWORD} --auto-attach; \
         yum repolist --disablerepo=*; \
